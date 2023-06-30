@@ -1,9 +1,9 @@
 import ctypes
 from ctypes import windll
 
+import darkdetect
 from PySide6.QtGui import QFontDatabase
 from loguru import logger
-from qfluentwidgets import theme, Theme
 
 from packages.config import config
 
@@ -55,10 +55,9 @@ def initThemeConfiguration():
     if config["view"]["theme"] != "auto":
         return
 
-    sysTheme = theme()
-    if sysTheme == Theme.DARK:
+    if darkdetect.isDark():
         config.setViewTheme("dark")
-    elif sysTheme == Theme.LIGHT:
+    else:
         config.setViewTheme("light")
     logger.info("Successfully detect if system in dark mode.")
 
