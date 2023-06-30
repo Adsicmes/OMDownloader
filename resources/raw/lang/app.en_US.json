@@ -1,0 +1,136 @@
+{
+  "en_US": {
+    "mainWindow": {
+      "appTitle": "FrZ is handsome",
+      "homeInterface": "HomeInterface",
+      "mapDownloadInterface": "MapDownloadInterface",
+      "guest": "Guest"
+    },
+    "mapDownloadPage": {
+      "mainPage": {
+        "batchDownload": "BatchDownload"
+      },
+      "batchDownloadPage": {
+        "statusLabel": "*左边的参数全部都是可选项，也就是说可以不做选择*",
+        "execButton": "Exec",
+        "labels": {
+          "q": "Search :",
+          "c": "General",
+          "m": "Mode",
+          "s": "Categories",
+          "nsfw": "Explicit Content",
+          "e": "Extra",
+          "r": "Rank Achieved",
+          "played": "Played",
+          "l": "Language",
+          "g": "Genre",
+          "ar": "AR",
+          "od": "OD",
+          "cs": "CS",
+          "hp": "HP",
+          "bpm": "BPM",
+          "star": "Star",
+          "length": "Length(s)",
+          "ranked": "Ranked at",
+          "created": "Created at",
+          "sort": "Sorted by",
+          "count": "Count",
+          "mirror": "Mirror"
+        },
+        "c": {
+          "recommended": "Recommended",
+          "converts": "Converts",
+          "follows": "Follows",
+          "spotlights": "Spotlights",
+          "featured_artists": "Featured_artists"
+        },
+        "m": {
+          "std": "Std",
+          "taiko": "Taiko",
+          "catch": "Catch",
+          "mania": "Mania"
+        },
+        "s": {
+          "any": "Any",
+          "ranked": "Ranked",
+          "qualified": "Qualified",
+          "loved": "Loved",
+          "favourites": "Favourites",
+          "pending": "Pending",
+          "wip": "Wip",
+          "graveyard": "Graveyard",
+          "mine": "Mine"
+        },
+        "nsfw": {
+          "off": "Off",
+          "on": "On"
+        },
+        "e": {
+          "video": "Video",
+          "storyboard": "Storyboard"
+        },
+        "r": {
+          "XH": "XH",
+          "H": "H",
+          "SH": "SH",
+          "S": "S",
+          "A": "A",
+          "B": "B",
+          "C": "C",
+          "D": "D"
+        },
+        "played": {
+          "played": "Played",
+          "unplayed": "Unplayed"
+        },
+        "l": {
+          "unspecified": "Unspecified",
+          "english": "English",
+          "japanese": "Japanese",
+          "chinese": "Chinese",
+          "instrumental": "Instrumental",
+          "korean": "Korean",
+          "french": "French",
+          "germany": "Germany",
+          "swedish": "Swedish",
+          "spanish": "Spanish",
+          "italian": "Italian",
+          "russian": "Russian",
+          "polish": "Polish",
+          "others": "Others"
+        },
+        "g": {
+          "unspecified": "Unspecified",
+          "videoGame": "Video Game",
+          "anime": "Anime",
+          "rock": "Rock",
+          "pop": "Pop",
+          "others": "Others",
+          "novelty": "Novelty",
+          "hiphop": "Hiphop",
+          "electronic": "Electronic",
+          "metal": "Metal",
+          "classical": "Classical",
+          "folk": "Folk",
+          "jazz": "Jazz"
+        },
+        "sort": {
+          "title_asc": "Title (A-Z)",
+          "title_desc": "Title (Z-A)",
+          "artist_asc": "Artist (A-Z)",
+          "artist_desc": "Artist (Z-A)",
+          "difficulty_asc": "Stars (Low to High)",
+          "difficulty_desc": "Stars (High to Low)",
+          "ranked_asc": "Ranked or Loved Date (Old to New)",
+          "ranked_desc": "Ranked or Loved Date (New to Old)",
+          "rating_asc": "Rating (Low to High)",
+          "rating_desc": "Rating (High to Low)",
+          "plays_asc": "Play Count (Low to High)",
+          "plays_desc": "Play Count (High to Low)",
+          "favourites_asc": "Favourite Count (Low to High)",
+          "favourites_desc": "Favourite Count (High to Low)"
+        }
+      }
+    }
+  }
+}

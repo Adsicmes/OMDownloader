@@ -1,0 +1,15 @@
+{
+  "zh_CN": {
+    "mainWindow": {
+      "appTitle": "FrZ真帅",
+      "homeInterface": "主页",
+      "mapDownloadInterface": "铺面下载页",
+      "guest": "游客"
+    },
+    "mapDownloadPage": {
+      "batchDownloadPage": {
+        "search": "搜索 :"
+      }
+    }
+  }
+}

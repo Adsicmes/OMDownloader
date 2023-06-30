@@ -1,0 +1,12 @@
+{
+  "midc": {
+    "mainWindow": {
+      "appTitle": "midc真帅"
+    },
+    "mapDownloadPage": {
+      "batchDownloadPage": {
+        "search": "搜索 :"
+      }
+    }
+  }
+}
