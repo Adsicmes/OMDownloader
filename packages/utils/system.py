@@ -9,4 +9,4 @@ def getSysUsername():
 
 def getNowUnixTimestamp():
     """ get system timestamp """
-    return time.time_ns()
+    return time.time()
