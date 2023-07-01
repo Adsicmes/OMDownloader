@@ -8,7 +8,7 @@ from packages.config import config
 from packages.view import error_message
 
 
-class JsonLoader(i18n.loaders.json_loader.JsonLoader):
+class JsonLoader(i18n.loaders.json_loader.JsonLoader):  # noqa
     def __init__(self):
         super(JsonLoader, self).__init__()
 

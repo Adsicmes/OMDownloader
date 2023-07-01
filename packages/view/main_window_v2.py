@@ -25,7 +25,7 @@ class MainWindow(FluentWindow):
 
     def initNavigation(self):
         # add navigation items
-        self.addSubInterface(self.homeInterface, FIF.HOME, self.tr('Home'))
+        self.addSubInterface(self.homeInterface, FIF.HOME, i18n.t("app.mainWindow.homeInterface"))
         self.navigationInterface.addSeparator()
 
         pos = NavigationItemPosition.SCROLL

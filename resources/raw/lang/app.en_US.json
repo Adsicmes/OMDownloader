@@ -129,6 +129,27 @@
           "plays_desc": "Play Count (High to Low)",
           "favourites_asc": "Favourite Count (Low to High)",
           "favourites_desc": "Favourite Count (High to Low)"
+        },
+        "tooltip": {
+          "qLabel": "Equivalent to the search box on the official web page",
+          "cLabel": "",
+          "mLabel": "",
+          "sLabel": "",
+          "nsfwLabel": "",
+          "eLabel": "",
+          "rLabel": "",
+          "playedLabel": "",
+          "lLabel": "",
+          "gLabel": "",
+          "arLabel": "",
+          "odLabel": "",
+          "csLabel": "",
+          "hpLabel": "",
+          "bpmLabel": "",
+          "starLabel": "",
+          "lengthLabel": "",
+          "rankedLabel": "Ranked datetime. If enable this, there will only ranked and loved maps be included.",
+          "createdLabel": "Map Created datetime. If enable this, ranked time will be disabled."
         }
       }
     }

@@ -4,13 +4,13 @@ from typing import List
 
 import PySide6
 import i18n
-from PySide6 import QtGui
 from PySide6.QtCore import Qt, Signal, QMargins
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QButtonGroup, \
     QFrame
 from loguru import logger
 from qfluentwidgets import LineEdit, ComboBox, RadioButton, CheckBox, FlowLayout, \
-    PrimaryPushButton, TextEdit, ScrollArea, DoubleSpinBox, DatePicker, ZhDatePicker, SpinBox
+    PrimaryPushButton, TextEdit, ScrollArea, DoubleSpinBox, DatePicker, ZhDatePicker, SpinBox, ToolTipFilter, \
+    ToolTipPosition
 
 from packages.config import config
 from packages.enums import Mirrors
@@ -62,7 +62,7 @@ class BatchDownloadSubInterface(QWidget):
 
         self.scrollArea = ScrollArea(self)
         self.scrollArea.setWidget(self.paramWidget)
-        self.scrollArea.setFrameShape(QFrame.NoFrame)
+        self.scrollArea.setFrameShape(QFrame.NoFrame)  # noqa
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.ensureWidgetVisible(self.paramWidget)
         self.scrollArea.verticalScrollBar().setValue(0)
@@ -373,11 +373,14 @@ class ParamFillInWidget(QWidget):
 
     def initWidget(self):
         self.qLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.q"), self)
-        self.qLabel.installEventFilter(self)  # TODO: install event filter for all label
+        self.qLabel.installEventFilter(ToolTipFilter(self.qLabel, 300, ToolTipPosition.TOP))
+        self.qLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.qLabel"))
         self.qLineEdit = LineEdit(self)
 
         self.cEnabled = CheckBox("", self)
         self.cLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.c"), self)
+        self.cLabel.installEventFilter(ToolTipFilter(self.cLabel, 300, ToolTipPosition.TOP))
+        self.cLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.cLabel"))
         self.cCheckboxWidget = HCheckboxWidget(self)
         self.cCheckboxWidget.addItems([
             i18n.t("app.mapDownloadPage.batchDownloadPage.c.recommended"),
@@ -389,6 +392,8 @@ class ParamFillInWidget(QWidget):
 
         self.mEnabled = CheckBox("", self)
         self.mLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.m"), self)
+        self.mLabel.installEventFilter(ToolTipFilter(self.mLabel, 300, ToolTipPosition.TOP))
+        self.mLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.mLabel"))
         self.mRadioWidget = HRadioWidget(self)
         self.mRadioWidget.addItems([
             i18n.t("app.mapDownloadPage.batchDownloadPage.m.std"),
@@ -399,6 +404,8 @@ class ParamFillInWidget(QWidget):
 
         self.sEnabled = CheckBox("", self)
         self.sLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.s"), self)
+        self.sLabel.installEventFilter(ToolTipFilter(self.sLabel, 300, ToolTipPosition.TOP))
+        self.sLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.sLabel"))
         self.sRadioWidget = HRadioWidget(self)
         self.sRadioWidget.addItems([
             i18n.t("app.mapDownloadPage.batchDownloadPage.s.any"),
@@ -414,6 +421,8 @@ class ParamFillInWidget(QWidget):
 
         self.nsfwEnabled = CheckBox("", self)
         self.nsfwLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.nsfw"), self)
+        self.nsfwLabel.installEventFilter(ToolTipFilter(self.nsfwLabel, 300, ToolTipPosition.TOP))
+        self.nsfwLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.nsfwLabel"))
         self.nsfwRadioWidget = HRadioWidget(self)
         self.nsfwRadioWidget.addItems([
             i18n.t("app.mapDownloadPage.batchDownloadPage.nsfw.off"),
@@ -422,6 +431,8 @@ class ParamFillInWidget(QWidget):
 
         self.eEnabled = CheckBox("", self)
         self.eLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.e"), self)
+        self.eLabel.installEventFilter(ToolTipFilter(self.eLabel, 300, ToolTipPosition.TOP))
+        self.eLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.eLabel"))
         self.eCheckboxWidget = HCheckboxWidget(self)
         self.eCheckboxWidget.addItems([
             i18n.t("app.mapDownloadPage.batchDownloadPage.e.video"),
@@ -430,6 +441,8 @@ class ParamFillInWidget(QWidget):
 
         self.rEnabled = CheckBox("", self)
         self.rLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.r"), self)
+        self.rLabel.installEventFilter(ToolTipFilter(self.rLabel, 300, ToolTipPosition.TOP))
+        self.rLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.rLabel"))
         self.rCheckboxWidget = HCheckboxWidget(self)
         self.rCheckboxWidget.addItems([
             i18n.t("app.mapDownloadPage.batchDownloadPage.r.XH"),
@@ -444,6 +457,8 @@ class ParamFillInWidget(QWidget):
 
         self.playedEnabled = CheckBox("", self)
         self.playedLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.played"), self)
+        self.playedLabel.installEventFilter(ToolTipFilter(self.playedLabel, 300, ToolTipPosition.TOP))
+        self.playedLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.playedLabel"))
         self.playedRadioWidget = HRadioWidget(self)
         self.playedRadioWidget.addItems([
             i18n.t("app.mapDownloadPage.batchDownloadPage.played.played"),
@@ -452,6 +467,8 @@ class ParamFillInWidget(QWidget):
 
         self.lEnabled = CheckBox("", self)
         self.lLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.l"), self)
+        self.lLabel.installEventFilter(ToolTipFilter(self.lLabel, 300, ToolTipPosition.TOP))
+        self.lLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.lLabel"))
         self.lRadioWidget = HRadioWidget(self)
         self.lRadioWidget.addItems([
             i18n.t("app.mapDownloadPage.batchDownloadPage.l.unspecified"),
@@ -472,6 +489,8 @@ class ParamFillInWidget(QWidget):
 
         self.gEnabled = CheckBox("", self)
         self.gLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.g"), self)
+        self.gLabel.installEventFilter(ToolTipFilter(self.gLabel, 300, ToolTipPosition.TOP))
+        self.gLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.gLabel"))
         self.gRadioWidget = HRadioWidget(self)
         self.gRadioWidget.addItems([
             i18n.t("app.mapDownloadPage.batchDownloadPage.g.unspecified"),
@@ -491,38 +510,56 @@ class ParamFillInWidget(QWidget):
 
         self.arEnabled = CheckBox("", self)
         self.arLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.ar"), self)
+        self.arLabel.installEventFilter(ToolTipFilter(self.arLabel, 300, ToolTipPosition.TOP))
+        self.arLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.arLabel"))
         self.arRangeWidget = NumRangeUnit(self)
 
         self.odEnabled = CheckBox("", self)
         self.odLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.od"), self)
+        self.odLabel.installEventFilter(ToolTipFilter(self.odLabel, 300, ToolTipPosition.TOP))
+        self.odLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.odLabel"))
         self.odRangeWidget = NumRangeUnit(self)
 
         self.csEnabled = CheckBox("", self)
         self.csLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.cs"), self)
+        self.csLabel.installEventFilter(ToolTipFilter(self.csLabel, 300, ToolTipPosition.TOP))
+        self.csLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.csLabel"))
         self.csRangeWidget = NumRangeUnit(self)
 
         self.hpEnabled = CheckBox("", self)
         self.hpLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.hp"), self)
+        self.hpLabel.installEventFilter(ToolTipFilter(self.hpLabel, 300, ToolTipPosition.TOP))
+        self.hpLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.hpLabel"))
         self.hpRangeWidget = NumRangeUnit(self)
 
         self.bpmEnabled = CheckBox("", self)
         self.bpmLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.bpm"), self)
+        self.bpmLabel.installEventFilter(ToolTipFilter(self.bpmLabel, 300, ToolTipPosition.TOP))
+        self.bpmLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.bpmLabel"))
         self.bpmRangeWidget = NumRangeUnit(self)
 
         self.starEnabled = CheckBox("", self)
         self.starLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.star"), self)
+        self.starLabel.installEventFilter(ToolTipFilter(self.starLabel, 300, ToolTipPosition.TOP))
+        self.starLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.starLabel"))
         self.starRangeWidget = NumRangeUnit(self)
 
         self.lengthEnabled = CheckBox("", self)
         self.lengthLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.length"), self)
+        self.lengthLabel.installEventFilter(ToolTipFilter(self.lengthLabel, 300, ToolTipPosition.TOP))
+        self.lengthLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.lengthLabel"))
         self.lengthRangeWidget = NumRangeUnit(self)
 
         self.rankedEnabled = CheckBox("", self)
         self.rankedLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.ranked"), self)
+        self.rankedLabel.installEventFilter(ToolTipFilter(self.rankedLabel, 300, ToolTipPosition.TOP))
+        self.rankedLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.rankedLabel"))
         self.rankedRangeWidget = DateRangeUnit(self)
 
         self.createdEnabled = CheckBox("", self)
         self.createdLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.created"), self)
+        self.createdLabel.installEventFilter(ToolTipFilter(self.createdLabel, 300, ToolTipPosition.TOP))
+        self.createdLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.createdLabel"))
         self.createdRangeWidget = DateRangeUnit(self)
 
     def initLayout(self):
@@ -689,62 +726,7 @@ class ParamFillInWidget(QWidget):
         self.vBoxLayout.addLayout(self.createdLayout)
 
     def eventFilter(self, watched: PySide6.QtCore.QObject, event: PySide6.QtCore.QEvent) -> bool:
-        super().eventFilter(watched, event)
-        if isinstance(event, QtGui.QEnterEvent):
-            match watched:  # TODO: add new label and code to display tool tip
-                case self.qLabel:
-                    ...
-                case self.cLabel:
-                    ...
-                case self.mLabel:
-                    ...
-                case self.sLabel:
-                    ...
-                case self.nsfwLabel:
-                    ...
-                case self.eLabel:
-                    ...
-                case self.rLabel:
-                    ...
-                case self.playedLabel:
-                    ...
-                case self.lLabel:
-                    ...
-                case self.gLabel:
-                    ...
-                case self.arLabel:
-                    ...
-                case self.odLabel:
-                    ...
-                case self.csLabel:
-                    ...
-                case self.hpLabel:
-                    ...
-                case self.bpmLabel:
-                    ...
-                case self.starLabel:
-                    ...
-                case self.qLineEdit:
-                    ...
-                case self.cCheckboxWidget:
-                    ...
-                case self.mRadioWidget:
-                    ...
-                case self.sRadioWidget:
-                    ...
-                case self.nsfwRadioWidget:
-                    ...
-                case self.eCheckboxWidget:
-                    ...
-                case self.rCheckboxWidget:
-                    ...
-                case _:
-                    pass
-
-        # if watched == self.qLabel and isinstance(event, QtGui.QEnterEvent):
-        #     print(event)
-
-        return False
+        ...
 
     def getParams(self):
         """
