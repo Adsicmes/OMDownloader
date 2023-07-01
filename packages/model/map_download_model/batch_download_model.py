@@ -12,8 +12,8 @@ class DownloadParamsOfficial(TypedDict):
     m: ParamsM
     s: ParamsS
     nsfw: ParamsNsfw
-    e: ParamsE
-    r: ParamsR
+    e: List[ParamsE]
+    r: List[ParamsR]
     played: ParamsPlayed
     l: ParamsL
     g: ParamsG
@@ -27,7 +27,7 @@ class DownloadParamsFilter(TypedDict):
     hp: Tuple[float, float]
     bpm: Tuple[float, float]
     star: Tuple[float, float]
-    length: Tuple[int, int]
+    length: Tuple[float, float]
     ranked: Tuple[TypeDate, TypeDate]
     created: Tuple[TypeDate, TypeDate]
 

@@ -8,12 +8,14 @@ from PySide6 import QtGui
 from PySide6.QtCore import Qt, Signal, QMargins
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QButtonGroup, \
     QFrame
+from loguru import logger
 from qfluentwidgets import LineEdit, ComboBox, RadioButton, CheckBox, FlowLayout, \
     PrimaryPushButton, TextEdit, ScrollArea, DoubleSpinBox, DatePicker, ZhDatePicker, SpinBox
 
 from packages.config import config
-from packages.enums import Mirrors, ParamsSort
-from packages.model import DownloadParams, DownloadParamsOfficial
+from packages.enums import Mirrors
+from packages.enums.search_params_in_official import *
+from packages.model import DownloadParams, DownloadParamsOfficial, DownloadParamsFilter
 
 
 class BatchDownloadSubInterface(QWidget):
@@ -35,7 +37,7 @@ class BatchDownloadSubInterface(QWidget):
         self.sortComboBox = ComboBox(self)
         self.sortComboBox.addItems(
             [i18n.t(f"app.mapDownloadPage.batchDownloadPage.sort.{i.value}") for i in ParamsSort])
-        self.sortComboBox.setCurrentIndex(0)
+        self.sortComboBox.setCurrentIndex(7)  # ranked reverse
         self.sortComboBox.setFixedWidth(175)
         self.countLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.count"), self)
         self.countSpinBox = SpinBox(self)
@@ -82,7 +84,6 @@ class BatchDownloadSubInterface(QWidget):
         self.rightVBoxLayout.setSpacing(30)
 
         self.statusLabel.setFixedWidth(300)
-        # self.paramWidget.setFixedWidth(850)
 
         self.leftVBoxLayout.addWidget(self.scrollArea)
         self.rightVBoxLayout.addWidget(self.statusLabel, Qt.AlignmentFlag.AlignTop)
@@ -95,26 +96,271 @@ class BatchDownloadSubInterface(QWidget):
         self.hBoxLayout.addLayout(self.leftVBoxLayout)
         self.hBoxLayout.addLayout(self.rightVBoxLayout)
 
-    def _onExecButtonClicked(self):
-        # TODO: add param organization
+    def getParams(self) -> DownloadParams:
         if self.paramWidget.cEnabled.isChecked():
-            c = self.paramWidget.cCheckboxWidget.getSelectedButtonIndexes()
+            indexes = self.paramWidget.cCheckboxWidget.getSelectedButtonIndexes()
+            print(indexes)
+            c = []
+            for i in indexes:
+                match i:
+                    case 0:
+                        c.append(ParamsC.Recommended)
+                    case 1:
+                        c.append(ParamsC.ConvertMapIncluded)
+                    case 2:
+                        c.append(ParamsC.FollowMappers)
+                    case 3:
+                        c.append(ParamsC.SpotlightMaps)
+                    case 4:
+                        c.append(ParamsC.FeaturedArtists)
+        else:
+            c = None
+
+        if self.paramWidget.mEnabled.isChecked():
+            index = self.paramWidget.mRadioWidget.getActivatedButtonIndex()
+            match index:
+                case 0:
+                    m = ParamsM.Std
+                case 1:
+                    m = ParamsM.Taiko
+                case 2:
+                    m = ParamsM.Catch
+                case 3:
+                    m = ParamsM.Mania
+                case _:
+                    m = None
+        else:
+            m = None
+
+        if self.paramWidget.sEnabled.isChecked():
+            index = self.paramWidget.sRadioWidget.getActivatedButtonIndex()
+            match index:
+                case 0:
+                    s = ParamsS.Any
+                case 1:
+                    s = ParamsS.Ranked
+                case 2:
+                    s = ParamsS.Qualified
+                case 3:
+                    s = ParamsS.Loved
+                case 4:
+                    s = ParamsS.Favourites
+                case 5:
+                    s = ParamsS.Pending
+                case 6:
+                    s = ParamsS.Wip
+                case 7:
+                    s = ParamsS.Graveyard
+                case 8:
+                    s = ParamsS.Mine
+                case _:
+                    s = None
+        else:
+            s = None
+
+        if self.paramWidget.nsfwEnabled.isChecked():
+            index = self.paramWidget.nsfwRadioWidget.getActivatedButtonIndex()
+            match index:
+                case 0:
+                    nsfw = ParamsNsfw.Excluded
+                case 1:
+                    nsfw = ParamsNsfw.Included
+                case _:
+                    nsfw = None
+        else:
+            nsfw = None
+
+        if self.paramWidget.eEnabled.isChecked():
+            indexes = self.paramWidget.eCheckboxWidget.getSelectedButtonIndexes()
+            e = []
+            for i in indexes:
+                match i:
+                    case 0:
+                        e.append(ParamsE.Video)
+                    case 1:
+                        e.append(ParamsE.Storyboard)
+        else:
+            e = None
+
+        if self.paramWidget.rEnabled.isChecked():
+            indexes = self.paramWidget.rCheckboxWidget.getSelectedButtonIndexes()
+            r = []
+            for i in indexes:
+                match i:
+                    case 0:
+                        r.append(ParamsR.XH)
+                    case 1:
+                        r.append(ParamsR.X)
+                    case 2:
+                        r.append(ParamsR.SH)
+                    case 3:
+                        r.append(ParamsR.S)
+                    case 4:
+                        r.append(ParamsR.A)
+                    case 5:
+                        r.append(ParamsR.B)
+                    case 6:
+                        r.append(ParamsR.C)
+                    case 7:
+                        r.append(ParamsR.D)
+        else:
+            r = None
+
+        if self.paramWidget.playedEnabled.isChecked():
+            played = self.paramWidget.playedRadioWidget.getActivatedButtonIndex()
+            match played:
+                case 0:
+                    played = ParamsPlayed.Played
+                case 1:
+                    played = ParamsPlayed.Unplayed
+                case _:
+                    played = None
+        else:
+            played = None
+
+        if self.paramWidget.lEnabled.isChecked():
+            l = self.paramWidget.lRadioWidget.getActivatedButtonIndex()
+            match l:
+                case 0:
+                    l = ParamsL.Unspecified
+                case 1:
+                    l = ParamsL.English
+                case 2:
+                    l = ParamsL.Japanese
+                case 3:
+                    l = ParamsL.Chinese
+                case 4:
+                    l = ParamsL.Instrumental
+                case 5:
+                    l = ParamsL.Korean
+                case 6:
+                    l = ParamsL.French
+                case 7:
+                    l = ParamsL.Germany
+                case 8:
+                    l = ParamsL.Swedish
+                case 9:
+                    l = ParamsL.Spanish
+                case 10:
+                    l = ParamsL.Italian
+                case 11:
+                    l = ParamsL.Russian
+                case 12:
+                    l = ParamsL.Polish
+                case 13:
+                    l = ParamsL.Others
+                case _:
+                    l = None
+        else:
+            l = None
+
+        if self.paramWidget.gEnabled.isChecked():
+            g = self.paramWidget.gRadioWidget.getActivatedButtonIndex()
+            match g:
+                case 0:
+                    g = ParamsG.Unspecified
+                case 1:
+                    g = ParamsG.VideoGame
+                case 2:
+                    g = ParamsG.Anime
+                case 3:
+                    g = ParamsG.Rock
+                case 4:
+                    g = ParamsG.Pop
+                case 5:
+                    g = ParamsG.Others
+                case 6:
+                    g = ParamsG.Novelty
+                case 7:
+                    g = ParamsG.HipHop
+                case 8:
+                    g = ParamsG.Electronic
+                case 9:
+                    g = ParamsG.Metal
+                case 10:
+                    g = ParamsG.Classical
+                case 11:
+                    g = ParamsG.Folk
+                case 12:
+                    g = ParamsG.Jazz
+                case _:
+                    g = None
+        else:
+            g = None
+
+        index = self.sortComboBox.currentIndex()
+        match index:
+            case 0:
+                sort = ParamsSort.Title
+            case 1:
+                sort = ParamsSort.TitleReverse
+            case 2:
+                sort = ParamsSort.Artist
+            case 3:
+                sort = ParamsSort.ArtistReverse
+            case 4:
+                sort = ParamsSort.Difficulty
+            case 5:
+                sort = ParamsSort.DifficultyReverse
+            case 6:
+                sort = ParamsSort.Ranked
+            case 7:
+                sort = ParamsSort.RankedReverse
+            case 8:
+                sort = ParamsSort.Rating
+            case 9:
+                sort = ParamsSort.RatingReverse
+            case 10:
+                sort = ParamsSort.Plays
+            case 11:
+                sort = ParamsSort.PlaysReverse
+            case 12:
+                sort = ParamsSort.Favourites
+            case 13:
+                sort = ParamsSort.FavouritesReverse
+            case _:
+                sort = ParamsSort.RankedReverse
+
+        index = self.mirrorComboBox.currentIndex()
+        match index:
+            case 0:
+                mirror = Mirrors.Official
+            case _:
+                mirror = Mirrors.Official
 
         params = DownloadParams(
             official=DownloadParamsOfficial(
                 q=self.paramWidget.qLineEdit.text(),
-                c=None,
-                m=None,
-                s=None,
-                nsfw=None,
-                e=None,
-                r=None,
-                played=None,
-                l=None,
-                g=None,
-                sort=None
-            )
+                c=c,
+                m=m,
+                s=s,
+                nsfw=nsfw,
+                e=e,
+                r=r,
+                played=played,
+                l=l,
+                g=g,
+                sort=sort
+            ),
+            filter=DownloadParamsFilter(
+                ar=self.paramWidget.arRangeWidget.getRange() if self.paramWidget.arEnabled.isChecked() else None,
+                od=self.paramWidget.odRangeWidget.getRange() if self.paramWidget.odEnabled.isChecked() else None,
+                cs=self.paramWidget.csRangeWidget.getRange() if self.paramWidget.csEnabled.isChecked() else None,
+                hp=self.paramWidget.hpRangeWidget.getRange() if self.paramWidget.hpEnabled.isChecked() else None,
+                bpm=self.paramWidget.bpmRangeWidget.getRange() if self.paramWidget.bpmEnabled.isChecked() else None,
+                star=self.paramWidget.starRangeWidget.getRange() if self.paramWidget.starEnabled.isChecked() else None,
+                length=self.paramWidget.lengthRangeWidget.getRange() if self.paramWidget.lengthEnabled.isChecked() else None,
+                ranked=self.paramWidget.rankedRangeWidget.getRange() if self.paramWidget.rankedEnabled.isChecked() else None,
+                created=self.paramWidget.createdRangeWidget.getRange() if self.paramWidget.createdEnabled.isChecked() else None,
+            ),
+            count=self.countSpinBox.value(),
+            mirror=mirror
         )
+        return params
+
+    def _onExecButtonClicked(self):
+        params = self.getParams()
+        # TODO: Add task in handlers folder and call it with param.
 
 
 class ParamFillInWidget(QWidget):
@@ -634,9 +880,9 @@ class HCheckboxWidget(QWidget):
 
     def addItem(self, text: str):
         checkbox = CheckBox(text, self)
-        checkbox.clicked.connect(self._onItemClicked)
         self.widgetLayout.addWidget(checkbox)
         self.checkboxes.append(checkbox)
+        checkbox.stateChanged.connect(lambda state: self._stateChanged(state, checkbox))
 
     def addItems(self, texts: List[str]):
         for t in texts:
@@ -648,16 +894,19 @@ class HCheckboxWidget(QWidget):
     def getSelectedButtonTexts(self):
         return [checkbox.text() for checkbox in self.checkboxes]
 
-    def setButtonStatus(self, index: int, status: Qt.CheckState):
-        if status is self.CheckBoxStatusChecked:
+    def _stateChanged(self, state: int, widget: CheckBox):
+        index = self.findText(widget.text())
+        if index == -1:
+            logger.error(f"widget [{widget.text()}]not found")
+            return
+
+        if state == 2:
             if index in self.selections:
                 return
-            self.checkboxes[index].setCheckState(self.CheckBoxStatusChecked)
             self.selections.append(index)
-        elif status is self.CheckBoxStatusUnchecked:
+        elif state == 0:
             if index not in self.selections:
                 return
-            self.checkboxes[index].setCheckState(self.CheckBoxStatusUnchecked)
             self.selections.remove(index)
 
     def findText(self, text: str):
@@ -666,6 +915,3 @@ class HCheckboxWidget(QWidget):
                 return i
 
         return -1
-
-    def _onItemClicked(self, checkbox: CheckBox):
-        pass
