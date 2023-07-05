@@ -1,21 +1,614 @@
 # coding:utf-8
-
-from typing import List
+# TODO: 文件有待重构
+import datetime
+from typing import List, Literal, Tuple
 
 import PySide6
 import i18n
-from PySide6.QtCore import Qt, Signal, QMargins
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QButtonGroup, \
-    QFrame
+from PySide6.QtCore import Qt, Signal, QMargins, QDate
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QHBoxLayout, QButtonGroup,
+                               QFrame)
 from loguru import logger
-from qfluentwidgets import LineEdit, ComboBox, RadioButton, CheckBox, FlowLayout, \
-    PrimaryPushButton, TextEdit, ScrollArea, DoubleSpinBox, DatePicker, ZhDatePicker, SpinBox, ToolTipFilter, \
-    ToolTipPosition
+from qfluentwidgets import (LineEdit, ComboBox, RadioButton, CheckBox, FlowLayout,
+                            PrimaryPushButton, TextEdit, ScrollArea, DoubleSpinBox, SpinBox,
+                            ToolTipFilter,
+                            ToolTipPosition, CalendarPicker)
 
-from packages.config import config
 from packages.enums import Mirrors
 from packages.enums.search_params_in_official import *
 from packages.model import DownloadParams, DownloadParamsOfficial, DownloadParamsFilter
+
+
+class NumRangeUnit(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+        self.minDoubleSpinBox = DoubleSpinBox(self)
+        self.sepLabel = QLabel("-", self)
+        self.maxDoubleSpinBox = DoubleSpinBox(self)
+
+        self.minDoubleSpinBox.setMinimum(0)
+        self.maxDoubleSpinBox.setMinimum(0)
+        self.minDoubleSpinBox.editingFinished.connect(lambda: self._onEditFinished('min'))
+        self.maxDoubleSpinBox.editingFinished.connect(lambda: self._onEditFinished('max'))
+
+        self.hBoxLayout = QHBoxLayout(self)
+        self.hBoxLayout.addWidget(self.minDoubleSpinBox)
+        self.hBoxLayout.addWidget(self.sepLabel, alignment=Qt.AlignCenter)
+        self.hBoxLayout.addWidget(self.maxDoubleSpinBox)
+        self.hBoxLayout.addStretch(1)
+
+    def getRange(self) -> Tuple[float, float]:
+        return self.minDoubleSpinBox.value(), self.maxDoubleSpinBox.value()
+
+    def _onEditFinished(self, t: Literal['min', 'max']):
+        if t == "min":
+            if self.maxDoubleSpinBox.value() < self.minDoubleSpinBox.value():
+                self.maxDoubleSpinBox.setValue(self.minDoubleSpinBox.value())
+        elif t == "max":
+            if self.minDoubleSpinBox.value() > self.maxDoubleSpinBox.value():
+                self.minDoubleSpinBox.setValue(self.maxDoubleSpinBox.value())
+
+
+class DateRangeUnit(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+        # self.minDateEdit = ZhDatePicker(self) if config["view"]["i18nLanguage"] == "zh_CN" else DatePicker(self)
+        self.minDateEdit = CalendarPicker(self)
+        self.sepLabel = QLabel("-", self)
+        # self.maxDateEdit = ZhDatePicker(self) if config["view"]["i18nLanguage"] == "zh_CN" else DatePicker(self)
+        self.maxDateEdit = CalendarPicker(self)
+
+        self.minDateEdit.setDate(QDate.currentDate())
+        self.maxDateEdit.setDate(QDate.currentDate())
+        self.minDateEdit.setFixedWidth(130)
+        self.maxDateEdit.setFixedWidth(130)
+        self.minDateEdit.dateChanged.connect(lambda i: self._onEditFinished('min'))
+        self.maxDateEdit.dateChanged.connect(lambda i: self._onEditFinished('max'))
+
+        self.hBoxLayout = QHBoxLayout(self)
+        self.hBoxLayout.addWidget(self.minDateEdit)
+        self.hBoxLayout.addWidget(self.sepLabel, alignment=Qt.AlignCenter)
+        self.hBoxLayout.addWidget(self.maxDateEdit)
+        self.hBoxLayout.addStretch(1)
+
+    def getRange(self) -> Tuple[Tuple[int, int, int], Tuple[int, int, int]]:
+        """ return ((2023, 5, 29), (2023, 7, 29)) """
+        return self.minDateEdit.date.getDate(), self.maxDateEdit.date.getDate()
+
+    def _onEditFinished(self, t: Literal['min', 'max']):
+        max_time: datetime.date = datetime.date(*self.maxDateEdit.date.getDate())
+        min_time: datetime.date = datetime.date(*self.minDateEdit.date.getDate())
+
+        if t == "min":
+            if max_time.toordinal() < min_time.toordinal():
+                self.maxDateEdit.setDate(QDate(*self.minDateEdit.date.getDate()))
+        elif t == "max":
+            if min_time.toordinal() > max_time.toordinal():
+                self.minDateEdit.setDate(QDate(*self.maxDateEdit.date.getDate()))
+
+
+class HRadioWidget(QWidget):
+    currentIndexChanged = Signal(int)
+
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        self.buttons = []  # type: List[RadioButton]
+        self.activated = -1
+
+        self.widgetLayout = FlowLayout(self)
+        self.widgetLayout.setContentsMargins(0, 13, 0, 15)
+        self.widgetLayout.setVerticalSpacing(5)
+        self.widgetLayout.setHorizontalSpacing(10)
+
+        self.buttonGroup = QButtonGroup(self)
+        self.buttonGroup.buttonClicked.connect(self._onItemClicked)
+
+        # self.addAction(QAction(None, None, triggered=))
+
+    def addItem(self, text: str):
+        radioButton = RadioButton(text, self)
+        # radioButton.clicked.connect(self._onItemClicked(len(self.buttons)))
+        self.widgetLayout.addWidget(radioButton)
+        self.buttonGroup.addButton(radioButton)
+        self.buttons.append(radioButton)
+
+    def addItems(self, texts: List[str]):
+        for t in texts:
+            self.addItem(t)
+
+    def getActivatedButtonIndex(self) -> int:
+        return self.activated
+
+    def getActivatedButtonText(self) -> str:
+        if not 0 <= self.activated < len(self.buttons):
+            return ''
+        return self.buttons[self.activated].text()
+
+    def setActivatedButton(self, index: int):
+        self.buttons[index].click()
+        self.activated = index
+
+    def findText(self, text: str) -> int:
+        for i, item in enumerate(self.buttons):
+            if item.text() == text:
+                return i
+
+        return -1
+
+    def _onItemClicked(self, button: RadioButton):
+        index = self.findText(button.text())
+        if index == self.activated:
+            return
+
+        print("index: ", index)
+
+        self.activated = index
+        self.currentIndexChanged.emit(index)
+
+    # def paintEvent(self, event: PySide6.QtGui.QPaintEvent) -> None:
+    #     painter = QPainter(self)
+    #     pen = QPen(QColor("#e5e5e5"), 2, Qt.SolidLine)
+    #     if isDarkTheme():
+    #         pen.setColor("#2d2d2d")
+    #     else:
+    #         pen.setColor("#e5e5e5")
+    #     painter.setPen(pen)
+    #     painter.drawRoundedRect(QRect(0, 0, self.width() - 2, self.height() - 2), 10, 10)
+
+
+class HCheckboxWidget(QWidget):
+    selectedIndexesChanged = Signal(List[int])
+
+    CheckBoxStatusChecked = Qt.CheckState.Checked
+    CheckBoxStatusUnchecked = Qt.CheckState.Unchecked
+
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+        self.checkboxes = []  # type: List[CheckBox]
+        self.selections = []
+        self.widgetLayout = FlowLayout(self)
+        self.widgetLayout.setContentsMargins(0, 13, 0, 15)
+        self.widgetLayout.setVerticalSpacing(5)
+        self.widgetLayout.setHorizontalSpacing(10)
+
+    def addItem(self, text: str):
+        checkbox = CheckBox(text, self)
+        self.widgetLayout.addWidget(checkbox)
+        self.checkboxes.append(checkbox)
+        checkbox.stateChanged.connect(lambda state: self._stateChanged(state, checkbox))
+
+    def addItems(self, texts: List[str]):
+        for t in texts:
+            self.addItem(t)
+
+    def getSelectedButtonIndexes(self) -> List[int]:
+        return self.selections
+
+    def getSelectedButtonTexts(self) -> List[str]:
+        return [checkbox.text() for checkbox in self.checkboxes]
+
+    def _stateChanged(self, state: int, widget: CheckBox):
+        index = self.findText(widget.text())
+        if index == -1:
+            logger.error(f"widget [{widget.text()}]not found")
+            return
+
+        if state == 2:
+            if index in self.selections:
+                return
+            self.selections.append(index)
+        elif state == 0:
+            if index not in self.selections:
+                return
+            self.selections.remove(index)
+
+    def findText(self, text: str) -> int:
+        for i, item in enumerate(self.checkboxes):
+            if item.text() == text:
+                return i
+
+        return -1
+
+
+class ParamFillInWidget(QWidget):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.initWidget()
+        self.initLayout()
+
+    def initWidget(self):
+        self.qLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.q"), self)
+        self.qLabel.installEventFilter(ToolTipFilter(self.qLabel, 300, ToolTipPosition.TOP))
+        self.qLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.qLabel"))
+        self.qLineEdit = LineEdit(self)
+
+        self.cEnabled = CheckBox("", self)
+        self.cEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.cEnabled))
+        self.cLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.c"), self)
+        self.cLabel.installEventFilter(ToolTipFilter(self.cLabel, 300, ToolTipPosition.TOP))
+        self.cLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.cLabel"))
+        self.cCheckboxWidget = HCheckboxWidget(self)
+        self.cCheckboxWidget.addItems([
+            i18n.t("app.mapDownloadPage.batchDownloadPage.c.recommended"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.c.converts"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.c.follows"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.c.spotlights"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.c.featured_artists"),
+        ])
+
+        self.mEnabled = CheckBox("", self)
+        self.mEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.mEnabled))
+        self.mLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.m"), self)
+        self.mLabel.installEventFilter(ToolTipFilter(self.mLabel, 300, ToolTipPosition.TOP))
+        self.mLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.mLabel"))
+        self.mRadioWidget = HRadioWidget(self)
+        self.mRadioWidget.addItems([
+            i18n.t("app.mapDownloadPage.batchDownloadPage.m.std"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.m.taiko"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.m.catch"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.m.mania"),
+        ])
+
+        self.sEnabled = CheckBox("", self)
+        self.sEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.sEnabled))
+        self.sLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.s"), self)
+        self.sLabel.installEventFilter(ToolTipFilter(self.sLabel, 300, ToolTipPosition.TOP))
+        self.sLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.sLabel"))
+        self.sRadioWidget = HRadioWidget(self)
+        self.sRadioWidget.addItems([
+            i18n.t("app.mapDownloadPage.batchDownloadPage.s.any"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.s.ranked"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.s.qualified"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.s.loved"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.s.favourites"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.s.pending"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.s.wip"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.s.graveyard"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.s.mine"),
+        ])
+
+        self.nsfwEnabled = CheckBox("", self)
+        self.nsfwEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.nsfwEnabled))
+        self.nsfwLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.nsfw"), self)
+        self.nsfwLabel.installEventFilter(ToolTipFilter(self.nsfwLabel, 300, ToolTipPosition.TOP))
+        self.nsfwLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.nsfwLabel"))
+        self.nsfwRadioWidget = HRadioWidget(self)
+        self.nsfwRadioWidget.addItems([
+            i18n.t("app.mapDownloadPage.batchDownloadPage.nsfw.off"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.nsfw.on"),
+        ])
+
+        self.eEnabled = CheckBox("", self)
+        self.eEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.eEnabled))
+        self.eLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.e"), self)
+        self.eLabel.installEventFilter(ToolTipFilter(self.eLabel, 300, ToolTipPosition.TOP))
+        self.eLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.eLabel"))
+        self.eCheckboxWidget = HCheckboxWidget(self)
+        self.eCheckboxWidget.addItems([
+            i18n.t("app.mapDownloadPage.batchDownloadPage.e.video"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.e.storyboard"),
+        ])
+
+        self.rEnabled = CheckBox("", self)
+        self.rEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.rEnabled))
+        self.rLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.r"), self)
+        self.rLabel.installEventFilter(ToolTipFilter(self.rLabel, 300, ToolTipPosition.TOP))
+        self.rLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.rLabel"))
+        self.rCheckboxWidget = HCheckboxWidget(self)
+        self.rCheckboxWidget.addItems([
+            i18n.t("app.mapDownloadPage.batchDownloadPage.r.XH"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.r.H"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.r.SH"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.r.S"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.r.A"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.r.B"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.r.C"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.r.D"),
+        ])
+
+        self.playedEnabled = CheckBox("", self)
+        self.playedEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.playedEnabled))
+        self.playedLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.played"), self)
+        self.playedLabel.installEventFilter(ToolTipFilter(self.playedLabel, 300, ToolTipPosition.TOP))
+        self.playedLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.playedLabel"))
+        self.playedRadioWidget = HRadioWidget(self)
+        self.playedRadioWidget.addItems([
+            i18n.t("app.mapDownloadPage.batchDownloadPage.played.played"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.played.unplayed"),
+        ])
+
+        self.lEnabled = CheckBox("", self)
+        self.lEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.lEnabled))
+        self.lLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.l"), self)
+        self.lLabel.installEventFilter(ToolTipFilter(self.lLabel, 300, ToolTipPosition.TOP))
+        self.lLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.lLabel"))
+        self.lRadioWidget = HRadioWidget(self)
+        self.lRadioWidget.addItems([
+            i18n.t("app.mapDownloadPage.batchDownloadPage.l.unspecified"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.l.english"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.l.japanese"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.l.chinese"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.l.instrumental"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.l.korean"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.l.french"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.l.germany"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.l.swedish"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.l.spanish"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.l.italian"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.l.russian"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.l.polish"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.l.others"),
+        ])
+
+        self.gEnabled = CheckBox("", self)
+        self.gEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.gEnabled))
+        self.gLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.g"), self)
+        self.gLabel.installEventFilter(ToolTipFilter(self.gLabel, 300, ToolTipPosition.TOP))
+        self.gLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.gLabel"))
+        self.gRadioWidget = HRadioWidget(self)
+        self.gRadioWidget.addItems([
+            i18n.t("app.mapDownloadPage.batchDownloadPage.g.unspecified"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.g.videoGame"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.g.anime"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.g.rock"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.g.pop"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.g.others"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.g.novelty"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.g.hiphop"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.g.electronic"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.g.metal"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.g.classical"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.g.folk"),
+            i18n.t("app.mapDownloadPage.batchDownloadPage.g.jazz"),
+        ])
+
+        self.arEnabled = CheckBox("", self)
+        self.arEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.arEnabled))
+        self.arLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.ar"), self)
+        self.arLabel.installEventFilter(ToolTipFilter(self.arLabel, 300, ToolTipPosition.TOP))
+        self.arLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.arLabel"))
+        self.arRangeWidget = NumRangeUnit(self)
+
+        self.odEnabled = CheckBox("", self)
+        self.odEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.odEnabled))
+        self.odLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.od"), self)
+        self.odLabel.installEventFilter(ToolTipFilter(self.odLabel, 300, ToolTipPosition.TOP))
+        self.odLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.odLabel"))
+        self.odRangeWidget = NumRangeUnit(self)
+
+        self.csEnabled = CheckBox("", self)
+        self.csEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.csEnabled))
+        self.csLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.cs"), self)
+        self.csLabel.installEventFilter(ToolTipFilter(self.csLabel, 300, ToolTipPosition.TOP))
+        self.csLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.csLabel"))
+        self.csRangeWidget = NumRangeUnit(self)
+
+        self.hpEnabled = CheckBox("", self)
+        self.hpEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.hpEnabled))
+        self.hpLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.hp"), self)
+        self.hpLabel.installEventFilter(ToolTipFilter(self.hpLabel, 300, ToolTipPosition.TOP))
+        self.hpLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.hpLabel"))
+        self.hpRangeWidget = NumRangeUnit(self)
+
+        self.bpmEnabled = CheckBox("", self)
+        self.bpmEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.bpmEnabled))
+        self.bpmLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.bpm"), self)
+        self.bpmLabel.installEventFilter(ToolTipFilter(self.bpmLabel, 300, ToolTipPosition.TOP))
+        self.bpmLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.bpmLabel"))
+        self.bpmRangeWidget = NumRangeUnit(self)
+
+        self.starEnabled = CheckBox("", self)
+        self.starEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.starEnabled))
+        self.starLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.star"), self)
+        self.starLabel.installEventFilter(ToolTipFilter(self.starLabel, 300, ToolTipPosition.TOP))
+        self.starLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.starLabel"))
+        self.starRangeWidget = NumRangeUnit(self)
+
+        self.lengthEnabled = CheckBox("", self)
+        self.lengthEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.lengthEnabled))
+        self.lengthLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.length"), self)
+        self.lengthLabel.installEventFilter(ToolTipFilter(self.lengthLabel, 300, ToolTipPosition.TOP))
+        self.lengthLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.lengthLabel"))
+        self.lengthRangeWidget = NumRangeUnit(self)
+
+        self.rankedEnabled = CheckBox("", self)
+        self.rankedEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.rankedEnabled))
+        self.rankedLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.ranked"), self)
+        self.rankedLabel.installEventFilter(ToolTipFilter(self.rankedLabel, 300, ToolTipPosition.TOP))
+        self.rankedLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.rankedLabel"))
+        self.rankedRangeWidget = DateRangeUnit(self)
+
+        self.createdEnabled = CheckBox("", self)
+        self.createdEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.createdEnabled))
+        self.createdLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.created"), self)
+        self.createdLabel.installEventFilter(ToolTipFilter(self.createdLabel, 300, ToolTipPosition.TOP))
+        self.createdLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.createdLabel"))
+        self.createdRangeWidget = DateRangeUnit(self)
+
+    def initLayout(self):
+        self.qLayout = QHBoxLayout()
+        self.cLayout = QHBoxLayout()
+        self.mLayout = QHBoxLayout()
+        self.sLayout = QHBoxLayout()
+        self.nsfwLayout = QHBoxLayout()
+        self.eLayout = QHBoxLayout()
+        self.rLayout = QHBoxLayout()
+        self.playedLayout = QHBoxLayout()
+        self.lLayout = QHBoxLayout()
+        self.gLayout = QHBoxLayout()
+        self.arLayout = QHBoxLayout()
+        self.odLayout = QHBoxLayout()
+        self.csLayout = QHBoxLayout()
+        self.hpLayout = QHBoxLayout()
+        self.bpmLayout = QHBoxLayout()
+        self.starLayout = QHBoxLayout()
+        self.lengthLayout = QHBoxLayout()
+        self.rankedLayout = QHBoxLayout()
+        self.createdLayout = QHBoxLayout()
+
+        layoutMargin = QMargins(5, 10, 15, 10)
+        self.qLayout.setContentsMargins(layoutMargin)
+        self.cLayout.setContentsMargins(layoutMargin)
+        self.mLayout.setContentsMargins(layoutMargin)
+        self.sLayout.setContentsMargins(layoutMargin)
+        self.nsfwLayout.setContentsMargins(layoutMargin)
+        self.eLayout.setContentsMargins(layoutMargin)
+        self.rLayout.setContentsMargins(layoutMargin)
+        self.playedLayout.setContentsMargins(layoutMargin)
+        self.lLayout.setContentsMargins(layoutMargin)
+        self.gLayout.setContentsMargins(layoutMargin)
+        self.arLayout.setContentsMargins(layoutMargin)
+        self.odLayout.setContentsMargins(layoutMargin)
+        self.csLayout.setContentsMargins(layoutMargin)
+        self.hpLayout.setContentsMargins(layoutMargin)
+        self.bpmLayout.setContentsMargins(layoutMargin)
+        self.starLayout.setContentsMargins(layoutMargin)
+        self.lengthLayout.setContentsMargins(layoutMargin)
+        self.rankedLayout.setContentsMargins(layoutMargin)
+        self.createdLayout.setContentsMargins(layoutMargin)
+
+        labelFixedWidth = 120
+        self.qLabel.setFixedWidth(labelFixedWidth)
+        self.cLabel.setFixedWidth(labelFixedWidth)
+        self.mLabel.setFixedWidth(labelFixedWidth)
+        self.sLabel.setFixedWidth(labelFixedWidth)
+        self.nsfwLabel.setFixedWidth(labelFixedWidth)
+        self.eLabel.setFixedWidth(labelFixedWidth)
+        self.rLabel.setFixedWidth(labelFixedWidth)
+        self.playedLabel.setFixedWidth(labelFixedWidth)
+        self.lLabel.setFixedWidth(labelFixedWidth)
+        self.gLabel.setFixedWidth(labelFixedWidth)
+        self.arLabel.setFixedWidth(labelFixedWidth)
+        self.odLabel.setFixedWidth(labelFixedWidth)
+        self.csLabel.setFixedWidth(labelFixedWidth)
+        self.hpLabel.setFixedWidth(labelFixedWidth)
+        self.bpmLabel.setFixedWidth(labelFixedWidth)
+        self.starLabel.setFixedWidth(labelFixedWidth)
+        self.lengthLabel.setFixedWidth(labelFixedWidth)
+        self.rankedLabel.setFixedWidth(labelFixedWidth)
+        self.createdLabel.setFixedWidth(labelFixedWidth)
+
+        enabledCheckboxFixedWidth = 20
+        self.cEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.mEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.sEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.nsfwEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.eEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.rEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.playedEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.lEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.gEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.arEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.odEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.csEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.hpEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.bpmEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.starEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.lengthEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.rankedEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+        self.createdEnabled.setFixedWidth(enabledCheckboxFixedWidth)
+
+        self.qLayout.addWidget(self.qLabel)
+        self.qLayout.addWidget(self.qLineEdit)
+        self.cLayout.addWidget(self.cEnabled)
+        self.cLayout.addWidget(self.cLabel)
+        self.cLayout.addWidget(self.cCheckboxWidget)
+        self.mLayout.addWidget(self.mEnabled)
+        self.mLayout.addWidget(self.mLabel)
+        self.mLayout.addWidget(self.mRadioWidget)
+        self.sLayout.addWidget(self.sEnabled)
+        self.sLayout.addWidget(self.sLabel)
+        self.sLayout.addWidget(self.sRadioWidget)
+        self.nsfwLayout.addWidget(self.nsfwEnabled)
+        self.nsfwLayout.addWidget(self.nsfwLabel)
+        self.nsfwLayout.addWidget(self.nsfwRadioWidget)
+        self.eLayout.addWidget(self.eEnabled)
+        self.eLayout.addWidget(self.eLabel)
+        self.eLayout.addWidget(self.eCheckboxWidget)
+        self.rLayout.addWidget(self.rEnabled)
+        self.rLayout.addWidget(self.rLabel)
+        self.rLayout.addWidget(self.rCheckboxWidget)
+        self.playedLayout.addWidget(self.playedEnabled)
+        self.playedLayout.addWidget(self.playedLabel)
+        self.playedLayout.addWidget(self.playedRadioWidget)
+        self.lLayout.addWidget(self.lEnabled)
+        self.lLayout.addWidget(self.lLabel)
+        self.lLayout.addWidget(self.lRadioWidget)
+        self.gLayout.addWidget(self.gEnabled)
+        self.gLayout.addWidget(self.gLabel)
+        self.gLayout.addWidget(self.gRadioWidget)
+        self.arLayout.addWidget(self.arEnabled)
+        self.arLayout.addWidget(self.arLabel)
+        self.arLayout.addWidget(self.arRangeWidget)
+        self.odLayout.addWidget(self.odEnabled)
+        self.odLayout.addWidget(self.odLabel)
+        self.odLayout.addWidget(self.odRangeWidget)
+        self.csLayout.addWidget(self.csEnabled)
+        self.csLayout.addWidget(self.csLabel)
+        self.csLayout.addWidget(self.csRangeWidget)
+        self.hpLayout.addWidget(self.hpEnabled)
+        self.hpLayout.addWidget(self.hpLabel)
+        self.hpLayout.addWidget(self.hpRangeWidget)
+        self.bpmLayout.addWidget(self.bpmEnabled)
+        self.bpmLayout.addWidget(self.bpmLabel)
+        self.bpmLayout.addWidget(self.bpmRangeWidget)
+        self.starLayout.addWidget(self.starEnabled)
+        self.starLayout.addWidget(self.starLabel)
+        self.starLayout.addWidget(self.starRangeWidget)
+        self.lengthLayout.addWidget(self.lengthEnabled)
+        self.lengthLayout.addWidget(self.lengthLabel)
+        self.lengthLayout.addWidget(self.lengthRangeWidget)
+        self.rankedLayout.addWidget(self.rankedEnabled)
+        self.rankedLayout.addWidget(self.rankedLabel)
+        self.rankedLayout.addWidget(self.rankedRangeWidget)
+        self.createdLayout.addWidget(self.createdEnabled)
+        self.createdLayout.addWidget(self.createdLabel)
+        self.createdLayout.addWidget(self.createdRangeWidget)
+
+        self.vBoxLayout = QVBoxLayout(self)
+        self.vBoxLayout.addLayout(self.qLayout)
+        self.vBoxLayout.addLayout(self.cLayout)
+        self.vBoxLayout.addLayout(self.mLayout)
+        self.vBoxLayout.addLayout(self.sLayout)
+        self.vBoxLayout.addLayout(self.nsfwLayout)
+        self.vBoxLayout.addLayout(self.eLayout)
+        self.vBoxLayout.addLayout(self.rLayout)
+        self.vBoxLayout.addLayout(self.playedLayout)
+        self.vBoxLayout.addLayout(self.lLayout)
+        self.vBoxLayout.addSpacing(7)
+        self.vBoxLayout.addLayout(self.gLayout)
+        self.vBoxLayout.addLayout(self.arLayout)
+        self.vBoxLayout.addLayout(self.odLayout)
+        self.vBoxLayout.addLayout(self.csLayout)
+        self.vBoxLayout.addLayout(self.hpLayout)
+        self.vBoxLayout.addLayout(self.bpmLayout)
+        self.vBoxLayout.addLayout(self.starLayout)
+        self.vBoxLayout.addLayout(self.lengthLayout)
+        self.vBoxLayout.addLayout(self.rankedLayout)
+        self.vBoxLayout.addLayout(self.createdLayout)
+
+    def checkboxEnableFilter(self, checkbox: CheckBox):
+        if not checkbox.isChecked():
+            return
+
+        match checkbox:
+            case self.rankedEnabled:
+                self.sEnabled.setChecked(False)
+                self.createdEnabled.setChecked(False)
+            case self.createdEnabled:
+                self.sEnabled.setChecked(False)
+                self.rankedEnabled.setChecked(False)
+            case self.sEnabled:
+                self.rankedEnabled.setChecked(False)
+                self.createdEnabled.setChecked(False)
+
+    def eventFilter(self, watched: PySide6.QtCore.QObject, event: PySide6.QtCore.QEvent) -> bool:
+        ...
 
 
 class BatchDownloadSubInterface(QWidget):
@@ -361,539 +954,3 @@ class BatchDownloadSubInterface(QWidget):
     def _onExecButtonClicked(self):
         params = self.getParams()
         # TODO: Add task in handlers folder and call it with param.
-
-
-class ParamFillInWidget(QWidget):
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-        self.initWidget()
-        self.initLayout()
-
-    def initWidget(self):
-        self.qLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.q"), self)
-        self.qLabel.installEventFilter(ToolTipFilter(self.qLabel, 300, ToolTipPosition.TOP))
-        self.qLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.qLabel"))
-        self.qLineEdit = LineEdit(self)
-
-        self.cEnabled = CheckBox("", self)
-        self.cLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.c"), self)
-        self.cLabel.installEventFilter(ToolTipFilter(self.cLabel, 300, ToolTipPosition.TOP))
-        self.cLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.cLabel"))
-        self.cCheckboxWidget = HCheckboxWidget(self)
-        self.cCheckboxWidget.addItems([
-            i18n.t("app.mapDownloadPage.batchDownloadPage.c.recommended"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.c.converts"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.c.follows"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.c.spotlights"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.c.featured_artists"),
-        ])
-
-        self.mEnabled = CheckBox("", self)
-        self.mLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.m"), self)
-        self.mLabel.installEventFilter(ToolTipFilter(self.mLabel, 300, ToolTipPosition.TOP))
-        self.mLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.mLabel"))
-        self.mRadioWidget = HRadioWidget(self)
-        self.mRadioWidget.addItems([
-            i18n.t("app.mapDownloadPage.batchDownloadPage.m.std"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.m.taiko"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.m.catch"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.m.mania"),
-        ])
-
-        self.sEnabled = CheckBox("", self)
-        self.sLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.s"), self)
-        self.sLabel.installEventFilter(ToolTipFilter(self.sLabel, 300, ToolTipPosition.TOP))
-        self.sLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.sLabel"))
-        self.sRadioWidget = HRadioWidget(self)
-        self.sRadioWidget.addItems([
-            i18n.t("app.mapDownloadPage.batchDownloadPage.s.any"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.s.ranked"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.s.qualified"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.s.loved"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.s.favourites"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.s.pending"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.s.wip"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.s.graveyard"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.s.mine"),
-        ])
-
-        self.nsfwEnabled = CheckBox("", self)
-        self.nsfwLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.nsfw"), self)
-        self.nsfwLabel.installEventFilter(ToolTipFilter(self.nsfwLabel, 300, ToolTipPosition.TOP))
-        self.nsfwLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.nsfwLabel"))
-        self.nsfwRadioWidget = HRadioWidget(self)
-        self.nsfwRadioWidget.addItems([
-            i18n.t("app.mapDownloadPage.batchDownloadPage.nsfw.off"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.nsfw.on"),
-        ])
-
-        self.eEnabled = CheckBox("", self)
-        self.eLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.e"), self)
-        self.eLabel.installEventFilter(ToolTipFilter(self.eLabel, 300, ToolTipPosition.TOP))
-        self.eLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.eLabel"))
-        self.eCheckboxWidget = HCheckboxWidget(self)
-        self.eCheckboxWidget.addItems([
-            i18n.t("app.mapDownloadPage.batchDownloadPage.e.video"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.e.storyboard"),
-        ])
-
-        self.rEnabled = CheckBox("", self)
-        self.rLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.r"), self)
-        self.rLabel.installEventFilter(ToolTipFilter(self.rLabel, 300, ToolTipPosition.TOP))
-        self.rLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.rLabel"))
-        self.rCheckboxWidget = HCheckboxWidget(self)
-        self.rCheckboxWidget.addItems([
-            i18n.t("app.mapDownloadPage.batchDownloadPage.r.XH"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.r.H"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.r.SH"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.r.S"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.r.A"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.r.B"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.r.C"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.r.D"),
-        ])
-
-        self.playedEnabled = CheckBox("", self)
-        self.playedLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.played"), self)
-        self.playedLabel.installEventFilter(ToolTipFilter(self.playedLabel, 300, ToolTipPosition.TOP))
-        self.playedLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.playedLabel"))
-        self.playedRadioWidget = HRadioWidget(self)
-        self.playedRadioWidget.addItems([
-            i18n.t("app.mapDownloadPage.batchDownloadPage.played.played"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.played.unplayed"),
-        ])
-
-        self.lEnabled = CheckBox("", self)
-        self.lLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.l"), self)
-        self.lLabel.installEventFilter(ToolTipFilter(self.lLabel, 300, ToolTipPosition.TOP))
-        self.lLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.lLabel"))
-        self.lRadioWidget = HRadioWidget(self)
-        self.lRadioWidget.addItems([
-            i18n.t("app.mapDownloadPage.batchDownloadPage.l.unspecified"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.l.english"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.l.japanese"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.l.chinese"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.l.instrumental"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.l.korean"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.l.french"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.l.germany"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.l.swedish"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.l.spanish"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.l.italian"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.l.russian"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.l.polish"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.l.others"),
-        ])
-
-        self.gEnabled = CheckBox("", self)
-        self.gLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.g"), self)
-        self.gLabel.installEventFilter(ToolTipFilter(self.gLabel, 300, ToolTipPosition.TOP))
-        self.gLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.gLabel"))
-        self.gRadioWidget = HRadioWidget(self)
-        self.gRadioWidget.addItems([
-            i18n.t("app.mapDownloadPage.batchDownloadPage.g.unspecified"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.g.videoGame"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.g.anime"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.g.rock"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.g.pop"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.g.others"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.g.novelty"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.g.hiphop"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.g.electronic"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.g.metal"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.g.classical"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.g.folk"),
-            i18n.t("app.mapDownloadPage.batchDownloadPage.g.jazz"),
-        ])
-
-        self.arEnabled = CheckBox("", self)
-        self.arLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.ar"), self)
-        self.arLabel.installEventFilter(ToolTipFilter(self.arLabel, 300, ToolTipPosition.TOP))
-        self.arLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.arLabel"))
-        self.arRangeWidget = NumRangeUnit(self)
-
-        self.odEnabled = CheckBox("", self)
-        self.odLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.od"), self)
-        self.odLabel.installEventFilter(ToolTipFilter(self.odLabel, 300, ToolTipPosition.TOP))
-        self.odLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.odLabel"))
-        self.odRangeWidget = NumRangeUnit(self)
-
-        self.csEnabled = CheckBox("", self)
-        self.csLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.cs"), self)
-        self.csLabel.installEventFilter(ToolTipFilter(self.csLabel, 300, ToolTipPosition.TOP))
-        self.csLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.csLabel"))
-        self.csRangeWidget = NumRangeUnit(self)
-
-        self.hpEnabled = CheckBox("", self)
-        self.hpLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.hp"), self)
-        self.hpLabel.installEventFilter(ToolTipFilter(self.hpLabel, 300, ToolTipPosition.TOP))
-        self.hpLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.hpLabel"))
-        self.hpRangeWidget = NumRangeUnit(self)
-
-        self.bpmEnabled = CheckBox("", self)
-        self.bpmLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.bpm"), self)
-        self.bpmLabel.installEventFilter(ToolTipFilter(self.bpmLabel, 300, ToolTipPosition.TOP))
-        self.bpmLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.bpmLabel"))
-        self.bpmRangeWidget = NumRangeUnit(self)
-
-        self.starEnabled = CheckBox("", self)
-        self.starLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.star"), self)
-        self.starLabel.installEventFilter(ToolTipFilter(self.starLabel, 300, ToolTipPosition.TOP))
-        self.starLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.starLabel"))
-        self.starRangeWidget = NumRangeUnit(self)
-
-        self.lengthEnabled = CheckBox("", self)
-        self.lengthLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.length"), self)
-        self.lengthLabel.installEventFilter(ToolTipFilter(self.lengthLabel, 300, ToolTipPosition.TOP))
-        self.lengthLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.lengthLabel"))
-        self.lengthRangeWidget = NumRangeUnit(self)
-
-        self.rankedEnabled = CheckBox("", self)
-        self.rankedLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.ranked"), self)
-        self.rankedLabel.installEventFilter(ToolTipFilter(self.rankedLabel, 300, ToolTipPosition.TOP))
-        self.rankedLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.rankedLabel"))
-        self.rankedRangeWidget = DateRangeUnit(self)
-
-        self.createdEnabled = CheckBox("", self)
-        self.createdLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.created"), self)
-        self.createdLabel.installEventFilter(ToolTipFilter(self.createdLabel, 300, ToolTipPosition.TOP))
-        self.createdLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.createdLabel"))
-        self.createdRangeWidget = DateRangeUnit(self)
-
-    def initLayout(self):
-        # TODO: Layout重构，除了搜索框之外的参数填写行，全部抽象为一个QWidget子类
-        self.qLayout = QHBoxLayout()
-        self.cLayout = QHBoxLayout()
-        self.mLayout = QHBoxLayout()
-        self.sLayout = QHBoxLayout()
-        self.nsfwLayout = QHBoxLayout()
-        self.eLayout = QHBoxLayout()
-        self.rLayout = QHBoxLayout()
-        self.playedLayout = QHBoxLayout()
-        self.lLayout = QHBoxLayout()
-        self.gLayout = QHBoxLayout()
-        self.arLayout = QHBoxLayout()
-        self.odLayout = QHBoxLayout()
-        self.csLayout = QHBoxLayout()
-        self.hpLayout = QHBoxLayout()
-        self.bpmLayout = QHBoxLayout()
-        self.starLayout = QHBoxLayout()
-        self.lengthLayout = QHBoxLayout()
-        self.rankedLayout = QHBoxLayout()
-        self.createdLayout = QHBoxLayout()
-
-        layoutMargin = QMargins(5, 10, 15, 10)
-        self.qLayout.setContentsMargins(layoutMargin)
-        self.cLayout.setContentsMargins(layoutMargin)
-        self.mLayout.setContentsMargins(layoutMargin)
-        self.sLayout.setContentsMargins(layoutMargin)
-        self.nsfwLayout.setContentsMargins(layoutMargin)
-        self.eLayout.setContentsMargins(layoutMargin)
-        self.rLayout.setContentsMargins(layoutMargin)
-        self.playedLayout.setContentsMargins(layoutMargin)
-        self.lLayout.setContentsMargins(layoutMargin)
-        self.gLayout.setContentsMargins(layoutMargin)
-        self.arLayout.setContentsMargins(layoutMargin)
-        self.odLayout.setContentsMargins(layoutMargin)
-        self.csLayout.setContentsMargins(layoutMargin)
-        self.hpLayout.setContentsMargins(layoutMargin)
-        self.bpmLayout.setContentsMargins(layoutMargin)
-        self.starLayout.setContentsMargins(layoutMargin)
-        self.lengthLayout.setContentsMargins(layoutMargin)
-        self.rankedLayout.setContentsMargins(layoutMargin)
-        self.createdLayout.setContentsMargins(layoutMargin)
-
-        labelFixedWidth = 120
-        self.qLabel.setFixedWidth(labelFixedWidth)
-        self.cLabel.setFixedWidth(labelFixedWidth)
-        self.mLabel.setFixedWidth(labelFixedWidth)
-        self.sLabel.setFixedWidth(labelFixedWidth)
-        self.nsfwLabel.setFixedWidth(labelFixedWidth)
-        self.eLabel.setFixedWidth(labelFixedWidth)
-        self.rLabel.setFixedWidth(labelFixedWidth)
-        self.playedLabel.setFixedWidth(labelFixedWidth)
-        self.lLabel.setFixedWidth(labelFixedWidth)
-        self.gLabel.setFixedWidth(labelFixedWidth)
-        self.arLabel.setFixedWidth(labelFixedWidth)
-        self.odLabel.setFixedWidth(labelFixedWidth)
-        self.csLabel.setFixedWidth(labelFixedWidth)
-        self.hpLabel.setFixedWidth(labelFixedWidth)
-        self.bpmLabel.setFixedWidth(labelFixedWidth)
-        self.starLabel.setFixedWidth(labelFixedWidth)
-        self.lengthLabel.setFixedWidth(labelFixedWidth)
-        self.rankedLabel.setFixedWidth(labelFixedWidth)
-        self.createdLabel.setFixedWidth(labelFixedWidth)
-
-        enabledCheckboxFixedWidth = 20
-        self.cEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.mEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.sEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.nsfwEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.eEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.rEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.playedEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.lEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.gEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.arEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.odEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.csEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.hpEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.bpmEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.starEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.lengthEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.rankedEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-        self.createdEnabled.setFixedWidth(enabledCheckboxFixedWidth)
-
-        self.qLayout.addWidget(self.qLabel)
-        self.qLayout.addWidget(self.qLineEdit)
-        self.cLayout.addWidget(self.cEnabled)
-        self.cLayout.addWidget(self.cLabel)
-        self.cLayout.addWidget(self.cCheckboxWidget)
-        self.mLayout.addWidget(self.mEnabled)
-        self.mLayout.addWidget(self.mLabel)
-        self.mLayout.addWidget(self.mRadioWidget)
-        self.sLayout.addWidget(self.sEnabled)
-        self.sLayout.addWidget(self.sLabel)
-        self.sLayout.addWidget(self.sRadioWidget)
-        self.nsfwLayout.addWidget(self.nsfwEnabled)
-        self.nsfwLayout.addWidget(self.nsfwLabel)
-        self.nsfwLayout.addWidget(self.nsfwRadioWidget)
-        self.eLayout.addWidget(self.eEnabled)
-        self.eLayout.addWidget(self.eLabel)
-        self.eLayout.addWidget(self.eCheckboxWidget)
-        self.rLayout.addWidget(self.rEnabled)
-        self.rLayout.addWidget(self.rLabel)
-        self.rLayout.addWidget(self.rCheckboxWidget)
-        self.playedLayout.addWidget(self.playedEnabled)
-        self.playedLayout.addWidget(self.playedLabel)
-        self.playedLayout.addWidget(self.playedRadioWidget)
-        self.lLayout.addWidget(self.lEnabled)
-        self.lLayout.addWidget(self.lLabel)
-        self.lLayout.addWidget(self.lRadioWidget)
-        self.gLayout.addWidget(self.gEnabled)
-        self.gLayout.addWidget(self.gLabel)
-        self.gLayout.addWidget(self.gRadioWidget)
-        self.arLayout.addWidget(self.arEnabled)
-        self.arLayout.addWidget(self.arLabel)
-        self.arLayout.addWidget(self.arRangeWidget)
-        self.odLayout.addWidget(self.odEnabled)
-        self.odLayout.addWidget(self.odLabel)
-        self.odLayout.addWidget(self.odRangeWidget)
-        self.csLayout.addWidget(self.csEnabled)
-        self.csLayout.addWidget(self.csLabel)
-        self.csLayout.addWidget(self.csRangeWidget)
-        self.hpLayout.addWidget(self.hpEnabled)
-        self.hpLayout.addWidget(self.hpLabel)
-        self.hpLayout.addWidget(self.hpRangeWidget)
-        self.bpmLayout.addWidget(self.bpmEnabled)
-        self.bpmLayout.addWidget(self.bpmLabel)
-        self.bpmLayout.addWidget(self.bpmRangeWidget)
-        self.starLayout.addWidget(self.starEnabled)
-        self.starLayout.addWidget(self.starLabel)
-        self.starLayout.addWidget(self.starRangeWidget)
-        self.lengthLayout.addWidget(self.lengthEnabled)
-        self.lengthLayout.addWidget(self.lengthLabel)
-        self.lengthLayout.addWidget(self.lengthRangeWidget)
-        self.rankedLayout.addWidget(self.rankedEnabled)
-        self.rankedLayout.addWidget(self.rankedLabel)
-        self.rankedLayout.addWidget(self.rankedRangeWidget)
-        self.createdLayout.addWidget(self.createdEnabled)
-        self.createdLayout.addWidget(self.createdLabel)
-        self.createdLayout.addWidget(self.createdRangeWidget)
-
-        self.vBoxLayout = QVBoxLayout(self)
-        self.vBoxLayout.addLayout(self.qLayout)
-        self.vBoxLayout.addLayout(self.cLayout)
-        self.vBoxLayout.addLayout(self.mLayout)
-        self.vBoxLayout.addLayout(self.sLayout)
-        self.vBoxLayout.addLayout(self.nsfwLayout)
-        self.vBoxLayout.addLayout(self.eLayout)
-        self.vBoxLayout.addLayout(self.rLayout)
-        self.vBoxLayout.addLayout(self.playedLayout)
-        self.vBoxLayout.addLayout(self.lLayout)
-        self.vBoxLayout.addSpacing(7)
-        self.vBoxLayout.addLayout(self.gLayout)
-        self.vBoxLayout.addLayout(self.arLayout)
-        self.vBoxLayout.addLayout(self.odLayout)
-        self.vBoxLayout.addLayout(self.csLayout)
-        self.vBoxLayout.addLayout(self.hpLayout)
-        self.vBoxLayout.addLayout(self.bpmLayout)
-        self.vBoxLayout.addLayout(self.starLayout)
-        self.vBoxLayout.addLayout(self.lengthLayout)
-        self.vBoxLayout.addLayout(self.rankedLayout)
-        self.vBoxLayout.addLayout(self.createdLayout)
-
-    def eventFilter(self, watched: PySide6.QtCore.QObject, event: PySide6.QtCore.QEvent) -> bool:
-        ...
-
-    def getParams(self):
-        """
-        get all parameters from widgets
-        """
-        print(self.rankedRangeWidget.getRange())
-
-
-# TODO: 限制NumRangeUnit和DateRangeUnit最大框的值必须大于最小框的值
-class NumRangeUnit(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
-
-        self.minLineEdit = DoubleSpinBox(self)
-        self.minLineEdit.setMinimum(0)
-        self.sepLabel = QLabel("-", self)
-        self.maxLineEdit = DoubleSpinBox(self)
-        self.maxLineEdit.setMinimum(0)
-
-        self.hBoxLayout = QHBoxLayout(self)
-        self.hBoxLayout.addWidget(self.minLineEdit)
-        self.hBoxLayout.addWidget(self.sepLabel, alignment=Qt.AlignCenter)
-        self.hBoxLayout.addWidget(self.maxLineEdit)
-        self.hBoxLayout.addStretch(1)
-
-    def getRange(self):
-        return self.minLineEdit.value(), self.maxLineEdit.value()
-
-
-class DateRangeUnit(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
-
-        self.minDateEdit = ZhDatePicker(self) if config["view"]["i18nLanguage"] == "zh_CN" else DatePicker(self)
-        self.sepLabel = QLabel("-", self)
-        self.maxDateEdit = ZhDatePicker(self) if config["view"]["i18nLanguage"] == "zh_CN" else DatePicker(self)
-
-        self.hBoxLayout = QHBoxLayout(self)
-        self.hBoxLayout.addWidget(self.minDateEdit)
-        self.hBoxLayout.addWidget(self.sepLabel, alignment=Qt.AlignCenter)
-        self.hBoxLayout.addWidget(self.maxDateEdit)
-        self.hBoxLayout.addStretch(1)
-
-    def getRange(self):
-        """ return ((2023, 5, 29), (2023, 7, 29)) """
-        return self.minDateEdit.date.getDate(), self.maxDateEdit.date.getDate()
-
-
-class HRadioWidget(QWidget):
-    currentIndexChanged = Signal(int)
-
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
-        self.buttons = []  # type: List[RadioButton]
-        self.activated = -1
-
-        self.widgetLayout = FlowLayout(self)
-        self.widgetLayout.setContentsMargins(0, 13, 0, 15)
-        self.widgetLayout.setVerticalSpacing(5)
-        self.widgetLayout.setHorizontalSpacing(10)
-
-        self.buttonGroup = QButtonGroup(self)
-        self.buttonGroup.buttonClicked.connect(self._onItemClicked)
-
-        # self.addAction(QAction(None, None, triggered=))
-
-    def addItem(self, text: str):
-        radioButton = RadioButton(text, self)
-        # radioButton.clicked.connect(self._onItemClicked(len(self.buttons)))
-        self.widgetLayout.addWidget(radioButton)
-        self.buttonGroup.addButton(radioButton)
-        self.buttons.append(radioButton)
-
-    def addItems(self, texts: List[str]):
-        for t in texts:
-            self.addItem(t)
-
-    def getActivatedButtonIndex(self):
-        return self.activated
-
-    def getActivatedButtonText(self):
-        if not 0 <= self.activated < len(self.buttons):
-            return ''
-        return self.buttons[self.activated].text()
-
-    def setActivatedButton(self, index: int):
-        self.buttons[index].click()
-        self.activated = index
-
-    def findText(self, text: str):
-        for i, item in enumerate(self.buttons):
-            if item.text() == text:
-                return i
-
-        return -1
-
-    def _onItemClicked(self, button: RadioButton):
-        index = self.findText(button.text())
-        if index == self.activated:
-            return
-
-        print("index: ", index)
-
-        self.activated = index
-        self.currentIndexChanged.emit(index)
-
-    # def paintEvent(self, event: PySide6.QtGui.QPaintEvent) -> None:
-    #     painter = QPainter(self)
-    #     pen = QPen(QColor("#e5e5e5"), 2, Qt.SolidLine)
-    #     if isDarkTheme():
-    #         pen.setColor("#2d2d2d")
-    #     else:
-    #         pen.setColor("#e5e5e5")
-    #     painter.setPen(pen)
-    #     painter.drawRoundedRect(QRect(0, 0, self.width() - 2, self.height() - 2), 10, 10)
-
-
-class HCheckboxWidget(QWidget):
-    selectedIndexesChanged = Signal(List[int])
-
-    CheckBoxStatusChecked = Qt.CheckState.Checked
-    CheckBoxStatusUnchecked = Qt.CheckState.Unchecked
-
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
-
-        self.checkboxes = []  # type: List[CheckBox]
-        self.selections = []
-        self.widgetLayout = FlowLayout(self)
-        self.widgetLayout.setContentsMargins(0, 13, 0, 15)
-        self.widgetLayout.setVerticalSpacing(5)
-        self.widgetLayout.setHorizontalSpacing(10)
-
-    def addItem(self, text: str):
-        checkbox = CheckBox(text, self)
-        self.widgetLayout.addWidget(checkbox)
-        self.checkboxes.append(checkbox)
-        checkbox.stateChanged.connect(lambda state: self._stateChanged(state, checkbox))
-
-    def addItems(self, texts: List[str]):
-        for t in texts:
-            self.addItem(t)
-
-    def getSelectedButtonIndexes(self):
-        return self.selections
-
-    def getSelectedButtonTexts(self):
-        return [checkbox.text() for checkbox in self.checkboxes]
-
-    def _stateChanged(self, state: int, widget: CheckBox):
-        index = self.findText(widget.text())
-        if index == -1:
-            logger.error(f"widget [{widget.text()}]not found")
-            return
-
-        if state == 2:
-            if index in self.selections:
-                return
-            self.selections.append(index)
-        elif state == 0:
-            if index not in self.selections:
-                return
-            self.selections.remove(index)
-
-    def findText(self, text: str):
-        for i, item in enumerate(self.checkboxes):
-            if item.text() == text:
-                return i
-
-        return -1

@@ -15,8 +15,13 @@ themeColor=auto
 [Queue]
 ; All queue-related configurations
 maxTaskCount=3
+
+[ConnectionTimeout]
+ppy_sh=30
 """.strip()
 
+
+# TODO: 重构: 不再使用TypedDict，使用循环获取配置，不再逐一填写配置
 
 class SectionView(TypedDict):
     i18nLanguage: str
@@ -28,9 +33,14 @@ class Queue(TypedDict):
     maxTaskCount: int
 
 
+class ConnectionTimeout(TypedDict):
+    ppy_sh: int
+
+
 class ConfigItem(TypedDict):
     view: SectionView
     queue: Queue
+    connectionTimeout: ConnectionTimeout
 
 
 class Config:
@@ -49,6 +59,9 @@ class Config:
             ),
             queue=Queue(
                 maxTaskCount=int(self._cfg.get("Queue", "maxTaskCount"))
+            ),
+            connectionTimeout=ConnectionTimeout(
+                ppy_sh=int(self._cfg.get("ConnectionTimeout", "ppy_sh"))
             )
         )
 

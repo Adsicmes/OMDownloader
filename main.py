@@ -8,6 +8,7 @@ from packages.view import MainWindowV2
 
 def runApp():
     app = QtWidgets.QApplication()
+
     logger.info("Executing pre initialization...")
     initAll()
     logger.info("Successfully executed pre initialization.")
@@ -17,9 +18,10 @@ def runApp():
     logger.info("Successfully initialized window.")
 
     wd.show()
-    logger.info("Show window.")
     QApplication.processEvents()
     logger.info("Starting process events.")
+
+    logger.info("Show window.")
     app.exec()
 
 
