@@ -3,11 +3,9 @@
         <file>raw/osu_icon.png</file>
         <file>raw/images/osu-avatar-guest.png</file>
 
-        <file>raw/qss/dark/main_window.qss</file>
         <file>raw/qss/dark/home_interface.qss</file>
         <file>raw/qss/dark/titlebar.qss</file>
         <file>raw/qss/dark/map_download_interface.qss</file>
-        <file>raw/qss/dark/navigation.qss</file>
 
         <file>raw/lang/app.en_US.json</file>
         <file>raw/lang/app.zh_CN.json</file>
@@ -18,7 +16,6 @@
         <file>raw/fonts/TorusNotched-Regular.ttf</file>
         <file>raw/fonts/TorusNotched-SemiBold.ttf</file>
         <file>raw/fonts/TorusNotched-Thin.ttf</file>
-
         <file>raw/fonts/Aller_Std_Bd.ttf</file>
         <file>raw/fonts/Aller_Std_BdIt.ttf</file>
         <file>raw/fonts/Aller_Std_It.ttf</file>

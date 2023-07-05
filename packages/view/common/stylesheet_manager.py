@@ -6,9 +6,7 @@ from qfluentwidgets import StyleSheetBase, Theme, qconfig
 class StyleSheet(StyleSheetBase, Enum):
     """ Style sheet """
 
-    MAIN_WINDOW = "main_window"
     TITLEBAR = "titlebar"
-    NAVIGATION = "navigation"
 
     HOME_INTERFACE = "home_interface"
     MAP_DOWNLOAD_INTERFACE = "map_download_interface"
