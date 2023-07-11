@@ -41,5 +41,12 @@ jobs:
     - name: Make release
       run: |
         pyinstaller main.py --onefile -w --distpath .githubActions/packRelease/release --workpath .githubActions/packRelease/workpath --specpath .githubActions/packRelease/spec
-
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: .githubActions/packRelease/release/main.exe
+        prerelease: true
+        name: ghAutoBuild
+        
 
