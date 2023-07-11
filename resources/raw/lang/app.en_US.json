@@ -4,7 +4,12 @@
       "appTitle": "FrZ is handsome",
       "homeInterface": "HomeInterface",
       "mapDownloadInterface": "MapDownloadInterface",
-      "guest": "Guest"
+      "guest": "Guest",
+      "avatar": {
+        "loginLabel": "Login",
+        "loginButton": "login",
+        "cancelButton": "cancel"
+      }
     },
     "mapDownloadPage": {
       "mainPage": {

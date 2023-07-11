@@ -1,31 +1,31 @@
-from typing import List
+from typing import List, TypedDict
 
 from packages.enums import PlayMode
 
 
-class _Country:
+class _Country(TypedDict):
     code: str
     name: str
 
 
-class _Cover:
+class _Cover(TypedDict):
     custom_url: str
     id: int
     url: str
 
 
-class _Friend:
+class _Friend(TypedDict):
     mutual: bool
     relation_type: str
     target_id: int
 
 
-class _Kudosu:
+class _Kudosu(TypedDict):
     total: int
     available: int
 
 
-class _UserPreferences:
+class _UserPreferences(TypedDict):
     audio_autoplay: bool
     audio_muted: bool
     audio_volume: float
@@ -41,7 +41,7 @@ class _UserPreferences:
     user_list_view: str
 
 
-class UserModel:
+class UserModel(TypedDict):
     avatar_url: str
     blocks: list
     country: _Country
@@ -90,11 +90,3 @@ class UserModel:
     user_preferences: _UserPreferences
     username: str
     website: str
-
-    def from_json(self, j: dict) -> None:
-        for k, v in j.items():
-            if not isinstance(v, dict):
-                setattr(self, k, v)
-            else:
-                for kk, vv in v.items():
-                    setattr(eval(f"self.{k}"), kk, vv)

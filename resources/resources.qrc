@@ -2,6 +2,7 @@
     <qresource prefix="/res">
         <file>raw/osu_icon.png</file>
         <file>raw/images/osu-avatar-guest.png</file>
+        <file>raw/images/000_homepage_bg.png</file>
 
         <file>raw/qss/dark/home_interface.qss</file>
         <file>raw/qss/dark/titlebar.qss</file>

@@ -24,6 +24,8 @@ class MainWindow(FluentWindow):
         # create sub interface
         self.homeInterface = HomeInterface(self)
         self.mapDownloadInterface = MapDownloadInterface(self)
+        self.avatar = AvatarWidget(self)
+
         self.initNavigation()
         self.splashScreen.finish()
 
@@ -41,8 +43,8 @@ class MainWindow(FluentWindow):
         # add custom widget to bottom
         self.navigationInterface.addWidget(
             routeKey='avatar',
-            widget=AvatarWidget(self),
-            onClick=lambda: ...,
+            widget=self.avatar,
+            onClick=lambda: self.avatar.onClicked(self.avatar, self),
             position=NavigationItemPosition.BOTTOM
         )
 

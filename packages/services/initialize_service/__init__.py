@@ -1,3 +1,4 @@
+from .directory import *
 from .i18n import *
 from .logger import *
 from .resource import *
@@ -11,6 +12,8 @@ def initAll():
     initLanguageConfiguration()
     initThemeConfiguration()
     initThemeColorConfiguration()
+
+    initDir()
 
     initI18n()
     initAppFont()

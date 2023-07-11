@@ -9,7 +9,7 @@ from packages.config import config
 class OsuWebApi:
     BASE_URL = "https://osu.ppy.sh"
 
-    def __init__(self, client: httpx.Client = None, timeout: int = config['ConnectionTimeout']['ppy_sh']):
+    def __init__(self, client: httpx.Client = None, timeout: int = config['connectionTimeout']['ppy_sh']):
         if client is None:
             self.externalClient = False
             self.client = httpx.Client(timeout=timeout)

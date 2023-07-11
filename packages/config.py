@@ -18,6 +18,10 @@ maxTaskCount=3
 
 [ConnectionTimeout]
 ppy_sh=30
+
+[Others]
+cacheLocation=cache
+dataLocation=data
 """.strip()
 
 
@@ -37,10 +41,16 @@ class ConnectionTimeout(TypedDict):
     ppy_sh: int
 
 
+class Others(TypedDict):
+    cacheLocation: str
+    dataLocation: str
+
+
 class ConfigItem(TypedDict):
     view: SectionView
     queue: Queue
     connectionTimeout: ConnectionTimeout
+    others: Others
 
 
 class Config:
@@ -62,6 +72,10 @@ class Config:
             ),
             connectionTimeout=ConnectionTimeout(
                 ppy_sh=int(self._cfg.get("ConnectionTimeout", "ppy_sh"))
+            ),
+            others=Others(
+                cacheLocation=self._cfg.get("Others", "cacheLocation"),
+                dataLocation=self._cfg.get("Others", "dataLocation")
             )
         )
 

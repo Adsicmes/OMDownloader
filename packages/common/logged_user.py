@@ -1,5 +1,10 @@
-class User:
-    pass
+from packages.model.osu_web.user import UserModel
 
 
-loggedUser = User()
+class LoggedUser:
+    userInfo: UserModel
+    lastUpdate: float
+    isLogged: bool = False
+
+
+loggedUser = LoggedUser()

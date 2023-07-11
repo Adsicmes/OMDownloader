@@ -1,5 +1,6 @@
 .QLabel {
     font-size: 16px;
+    color: white;
 }
 
 .ScrollArea {

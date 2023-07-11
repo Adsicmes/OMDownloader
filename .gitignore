@@ -1,7 +1,8 @@
 /.idea
 /log
 /libs
-
+/cache
+/data
 /test
 test.py
 /packages/resources.py
