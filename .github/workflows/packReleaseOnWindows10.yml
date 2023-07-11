@@ -18,6 +18,13 @@ jobs:
     runs-on: windows-latest
 
     steps:
+    - name: Cache
+      uses: actions/cache@v1.2.1
+      with:
+        # A directory to store and save the cache
+        path: .githubActions/cache
+        # An explicit key for restoring and saving the cache
+        key: windows-latest-pack-release
     - uses: actions/checkout@v3
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
@@ -33,4 +40,6 @@ jobs:
         python -m pip install pyinstaller
     - name: Make release
       run: |
-        python -m pyinstaller main.py -F -o .githubActions/packRelease/release
+        pyinstaller main.py -F -o .githubActions/packRelease/release
+
+
