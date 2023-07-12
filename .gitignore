@@ -7,3 +7,4 @@
 /release
 /packages/resources.py
 test.py
+/devTools/exePack/installerPack/innoScript.iss
