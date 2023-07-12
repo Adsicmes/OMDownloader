@@ -57,9 +57,14 @@ jobs:
         with:
           filepath: './devTools/exePack/installerPack/innoScript.iss'
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload Portable
+        uses: actions/upload-artifact@v3
         with:
-          name: Auto Pack
-          path: |
-            release/pyinstaller/dist/main
-            release/nanoInstaller/OMDownloader.exe
+          name: auto build portable zip
+          path: release/pyinstaller/dist/main
+
+      - name: Upload Installer
+        uses: actions/upload-artifact@v3
+        with:
+          name: auto build installer
+          path: release/nanoInstaller/OMDownloader.exe
