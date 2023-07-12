@@ -17,7 +17,10 @@ themeColor=auto
 maxTaskCount=3
 
 [ConnectionTimeout]
-ppy_sh=30
+ppy_sh=10
+
+[Retry]
+ppy_sh=3
 
 [Others]
 cacheLocation=cache
@@ -42,6 +45,10 @@ class ConnectionTimeout(TypedDict):
     ppy_sh: int
 
 
+class Retry(TypedDict):
+    ppy_sh: int
+
+
 class Others(TypedDict):
     cacheLocation: str
     dataLocation: str
@@ -52,6 +59,7 @@ class ConfigItem(TypedDict):
     view: SectionView
     queue: Queue
     connectionTimeout: ConnectionTimeout
+    retry: Retry
     others: Others
 
 
@@ -74,6 +82,9 @@ class Config:
             ),
             connectionTimeout=ConnectionTimeout(
                 ppy_sh=int(self._cfg.get("ConnectionTimeout", "ppy_sh"))
+            ),
+            retry=Retry(
+                ppy_sh=int(self._cfg.get("Retry", "ppy_sh"))
             ),
             others=Others(
                 cacheLocation=self._cfg.get("Others", "cacheLocation"),

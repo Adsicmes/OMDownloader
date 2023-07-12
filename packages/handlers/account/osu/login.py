@@ -2,6 +2,8 @@ import os
 import pickle
 
 import httpx
+from loguru import logger
+from retry import retry
 
 from packages.common import DataFilePath
 from packages.common import loggedUser
@@ -16,12 +18,13 @@ from packages.utils import getNowUnixTimestamp
 def login_exec(username, password):
     quid = taskQueue.createQueue()
     loginThread = taskQueue.createTaskWithNewThread(_login, 0, username, password, quid)
-    handleThread = taskQueue.createTaskWithNewThread(_loginHandle, 0, username, password, quid)
 
 
+@retry((httpx.HTTPError,), tries=config["retry"]["ppy_sh"], delay=1, logger=logger)
 def _login(username, password, quid):
     q = taskQueue.findQueue(quid)
     q.put(osuWebApi.login(username, password).json())
+    handleThread = taskQueue.createTaskWithNewThread(_loginHandle, 0, username, password, quid)
 
 
 def _loginHandle(username, password, quid):
@@ -39,6 +42,9 @@ def _loginHandle(username, password, quid):
 
     # pickle username and password to local data
     pickle.dump((username, password), open(DataFilePath.userLoginInfo, "wb"))
+
+    # done queue task
+    q.task_done()
 
 
 def _avatarDownload(url):

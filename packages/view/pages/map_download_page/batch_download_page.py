@@ -16,7 +16,9 @@ from qfluentwidgets import (LineEdit, ComboBox, RadioButton, CheckBox, FlowLayou
 
 from packages.enums import Mirrors
 from packages.enums.search_params_in_official import *
-from packages.model import DownloadParams, BeatmapParamsOfficial, DownloadParamsFilter
+from packages.handlers.map_download.batch_download import batch_download_exec
+from packages.model.map_download_model.batch_download_model import DownloadParams, BeatmapParamsOfficial, \
+    DownloadParamsFilter
 
 
 class NumRangeUnit(QWidget):
@@ -141,8 +143,6 @@ class HRadioWidget(QWidget):
         index = self.findText(button.text())
         if index == self.activated:
             return
-
-        print("index: ", index)
 
         self.activated = index
         self.currentIndexChanged.emit(index)
@@ -692,7 +692,6 @@ class BatchDownloadSubInterface(QWidget):
     def getParams(self) -> DownloadParams:
         if self.paramWidget.cEnabled.isChecked():
             indexes = self.paramWidget.cCheckboxWidget.getSelectedButtonIndexes()
-            print(indexes)
             c = []
             for i in indexes:
                 match i:
@@ -952,5 +951,4 @@ class BatchDownloadSubInterface(QWidget):
         return params
 
     def _onExecButtonClicked(self):
-        params = self.getParams()
-        # TODO: Add task in handlers folder and call it with param.
+        batch_download_exec(self.getParams())

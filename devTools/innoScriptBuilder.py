@@ -67,7 +67,7 @@ __ExePath__ = os.path.join(BASEDIR, "release", "pyinstaller", "dist", "main")
 def sourceAppend() -> str:
     sourceStr = ""
     for i in os.listdir(__ExePath__):
-        if i == f"{__AppName__}.exe":
+        if i == f"{__AppName__}.exe":  # noqa
             continue
         if os.path.isdir(os.path.join(__ExePath__, i)):
             sourceStr += fr"""Source: "{os.path.join(__ExePath__, i)}\*"; DestDir: "{'{app}'}\{i}"; Flags: ignoreversion recursesubdirs createallsubdirs"""
@@ -78,6 +78,7 @@ def sourceAppend() -> str:
     return sourceStr
 
 
+# noinspection PyUnresolvedReferences
 script = SCRIPT \
     .replace("__AppName__", __AppName__) \
     .replace("__Version__", __Version__) \
