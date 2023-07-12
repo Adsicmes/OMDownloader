@@ -1,19 +1,24 @@
 from .directory import *
 from .i18n import *
 from .logger import *
+from .login import *
 from .resource import *
 from .view import *
 
 
-def initAll():
+def initPreUILoaded():
     initLogger()
     initResources()
+
+    initDir()
 
     initLanguageConfiguration()
     initThemeConfiguration()
     initThemeColorConfiguration()
 
-    initDir()
-
     initI18n()
     initAppFont()
+
+
+def initAfterUILoaded():
+    initLogin()

@@ -16,7 +16,7 @@ from qfluentwidgets import (LineEdit, ComboBox, RadioButton, CheckBox, FlowLayou
 
 from packages.enums import Mirrors
 from packages.enums.search_params_in_official import *
-from packages.model import DownloadParams, DownloadParamsOfficial, DownloadParamsFilter
+from packages.model import DownloadParams, BeatmapParamsOfficial, DownloadParamsFilter
 
 
 class NumRangeUnit(QWidget):
@@ -922,7 +922,7 @@ class BatchDownloadSubInterface(QWidget):
                 mirror = Mirrors.Official
 
         params = DownloadParams(
-            official=DownloadParamsOfficial(
+            official=BeatmapParamsOfficial(
                 q=self.paramWidget.qLineEdit.text(),
                 c=c,
                 m=m,

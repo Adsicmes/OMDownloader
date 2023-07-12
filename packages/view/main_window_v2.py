@@ -1,14 +1,16 @@
+import PySide6
 import i18n
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
-from qfluentwidgets import FluentWindow  # , SplashScreen
+from qfluentwidgets import FluentWindow, MessageBox  # , SplashScreen
 from qfluentwidgets.common.icon import FluentIcon as FIF
 from qfluentwidgets.common.style_sheet import setTheme, Theme
 from qfluentwidgets.components.navigation.navigation_interface import NavigationItemPosition
 from qframelesswindow import TitleBar
 
 from packages.config import config
+from packages.services.exit_service import exitEventHandle
 from .components import (AvatarWidget,
                          SplashScreenWithFadeOut as SplashScreen,
                          FluentTitleBarWithVersionNumber as TitleBar)
@@ -77,3 +79,17 @@ class MainWindow(FluentWindow):
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
         self.show()
         QApplication.processEvents()
+
+    def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
+
+        closeMsg = MessageBox(i18n.t("app.mainWindow.closeMsg.closeMsgTitle"),
+                              i18n.t("app.mainWindow.closeMsg.closeMsgContent"), self)
+        closeMsg.yesButton.setText(i18n.t("app.mainWindow.closeMsg.yes"))
+        closeMsg.cancelButton.setText(i18n.t("app.mainWindow.closeMsg.no"))
+        if not closeMsg.exec():
+            event.ignore()
+            return
+
+        event.accept()
+        self.hide()
+        exitEventHandle()

@@ -1,9 +1,11 @@
 import re
-from typing import Tuple
+from enum import Enum
+from typing import Tuple, List
 
 import httpx
 
 from packages.config import config
+from packages.model.osu_web.beatmap import BeatmapParamsOfficial
 
 
 class OsuWebApi:
@@ -45,3 +47,17 @@ class OsuWebApi:
         headers = {"referer": self.BASE_URL + "/home", "X-CSRF-TOKEN": csrfToken}
         cookies = {"X-CSRF-TOKEN": csrfToken}
         return self.client.delete(self.BASE_URL + "/session", headers=headers, cookies=cookies)
+
+    def searchBeatmaps(self, params: BeatmapParamsOfficial):
+        search_params = {}
+        for k, v in params.items():
+            if v is None:
+                continue
+            if isinstance(v, str):
+                search_params[k] = v
+            elif isinstance(v, Enum):
+                search_params[k] = v.value
+            elif isinstance(v, List):
+                search_params[k] = [x.value for x in v]
+
+        return self.client.get(self.BASE_URL + "/beatmaps/search", params=search_params)

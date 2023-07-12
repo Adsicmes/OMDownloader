@@ -4,5 +4,6 @@
 /cache
 /data
 /test
-test.py
+/release
 /packages/resources.py
+test.py

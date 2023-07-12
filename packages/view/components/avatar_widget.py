@@ -9,29 +9,16 @@ from qfluentwidgets import NavigationWidget, isDarkTheme, FlyoutViewBase, BodyLa
     TeachingTipTailPosition, PrimaryPushButton, LineEdit
 
 from packages.common import signalBus
+from packages.common.logged_user import loggedUser
 from packages.handlers.account.osu.login import login_exec
 
 
-# class CustomFlyoutView(FlyoutViewBase):
-#
-#     def __init__(self, parent=None):
-#         super().__init__(parent)
-#         self.hBoxLayout = QHBoxLayout()
-#         self.hBoxLayout.setContentsMargins(0, 0, 0, 0)
-#
-#         self.loginLabel = QLabel(i18n.t("app.mainWindow.avatar.loginLabel"), self)
-#         self.hBoxLayout.addWidget(self.loginLabel)
-#
-#     def paintEvent(self, e):
-#         pass
-
-
-class CustomFlyoutView(FlyoutViewBase):
+class LoginFlyoutView(FlyoutViewBase):
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.vBoxLayout = QVBoxLayout(self)
-        self.label = BodyLabel('Login')
+        self.label = BodyLabel(i18n.t("app.mainWindow.avatar.loginLabel"))
         self.label.setFont(QFont(QApplication.font().family(), 16))
 
         self.usernameLineEdit = LineEdit(self)
@@ -40,7 +27,7 @@ class CustomFlyoutView(FlyoutViewBase):
         self.passwordLineEdit.setPlaceholderText("Password")
         self.passwordLineEdit.setEchoMode(QLineEdit.EchoMode.Password)
 
-        self.button = PrimaryPushButton('Login')
+        self.button = PrimaryPushButton(i18n.t("app.mainWindow.avatar.loginButton"))
         self.button.setFixedWidth(140)
         self.button.clicked.connect(self.on_login_clicked)
 
@@ -61,9 +48,11 @@ class CustomFlyoutView(FlyoutViewBase):
         try:
             if self.button.isEnabled():
                 self.button.setEnabled(False)
+                self.button.setText(i18n.t("app.mainWindow.avatar.loginButtonLoading"))
             login_exec(self.usernameLineEdit.text(), self.passwordLineEdit.text())
         except Exception:
             self.button.setEnabled(True)
+            self.button.setText(i18n.t("app.mainWindow.avatar.loginButton"))
 
 
 class AvatarWidget(NavigationWidget):
@@ -134,9 +123,11 @@ class AvatarWidget(NavigationWidget):
 
     @staticmethod
     def onClicked(target, parent) -> None:
+        if loggedUser.isLogged:
+            return
         PopupTeachingTip.make(
             target=target,
-            view=CustomFlyoutView(),
+            view=LoginFlyoutView(),
             tailPosition=TeachingTipTailPosition.LEFT_BOTTOM,
             duration=-1,
             parent=parent

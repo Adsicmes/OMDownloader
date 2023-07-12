@@ -22,6 +22,7 @@ ppy_sh=30
 [Others]
 cacheLocation=cache
 dataLocation=data
+langLocation=lang
 """.strip()
 
 
@@ -44,6 +45,7 @@ class ConnectionTimeout(TypedDict):
 class Others(TypedDict):
     cacheLocation: str
     dataLocation: str
+    langLocation: str
 
 
 class ConfigItem(TypedDict):
@@ -75,7 +77,8 @@ class Config:
             ),
             others=Others(
                 cacheLocation=self._cfg.get("Others", "cacheLocation"),
-                dataLocation=self._cfg.get("Others", "dataLocation")
+                dataLocation=self._cfg.get("Others", "dataLocation"),
+                langLocation=self._cfg.get("Others", "langLocation")
             )
         )
 

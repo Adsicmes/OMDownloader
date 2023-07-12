@@ -1,23 +1,7 @@
-from typing import TypedDict, Tuple, NewType, List
+from typing import TypedDict, Tuple
 
 from packages.enums.map_download import Mirrors
-from packages.enums.search_params_in_official import *
-
-TypeDate = NewType("TypeDate", Tuple[int, int, int])
-
-
-class DownloadParamsOfficial(TypedDict):
-    q: str
-    c: List[ParamsC]
-    m: ParamsM
-    s: ParamsS
-    nsfw: ParamsNsfw
-    e: List[ParamsE]
-    r: List[ParamsR]
-    played: ParamsPlayed
-    l: ParamsL
-    g: ParamsG
-    sort: ParamsSort
+from packages.model.osu_web.beatmap import BeatmapParamsOfficial
 
 
 class DownloadParamsFilter(TypedDict):
@@ -28,12 +12,12 @@ class DownloadParamsFilter(TypedDict):
     bpm: Tuple[float, float]
     star: Tuple[float, float]
     length: Tuple[float, float]
-    ranked: Tuple[TypeDate, TypeDate]
-    created: Tuple[TypeDate, TypeDate]
+    ranked: Tuple[Tuple[int, int, int], Tuple[int, int, int]]
+    created: Tuple[Tuple[int, int, int], Tuple[int, int, int]]
 
 
 class DownloadParams(TypedDict):
-    official: DownloadParamsOfficial
+    official: BeatmapParamsOfficial
     filter: DownloadParamsFilter
     count: int
     mirror: Mirrors

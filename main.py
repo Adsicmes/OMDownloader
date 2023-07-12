@@ -2,7 +2,7 @@ from PySide6 import QtWidgets
 from PySide6.QtWidgets import QApplication
 from loguru import logger
 
-from packages.services import initAll
+from packages.services import initPreUILoaded, initAfterUILoaded
 from packages.view import MainWindowV2
 
 
@@ -10,7 +10,7 @@ def runApp():
     app = QtWidgets.QApplication()
 
     logger.info("Executing pre initialization...")
-    initAll()
+    initPreUILoaded()
     logger.info("Successfully executed pre initialization.")
 
     logger.info("Initializing window...")
@@ -20,6 +20,10 @@ def runApp():
     wd.show()
     QApplication.processEvents()
     logger.info("Starting process events.")
+
+    logger.info("Executing after-ui initialization...")
+    initAfterUILoaded()
+    logger.info("Successfully executed after-ui initialization.")
 
     logger.info("Show window.")
     app.exec()

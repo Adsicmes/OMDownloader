@@ -9,6 +9,7 @@ def initDir():
     for d in [
         config["others"]["cacheLocation"],
         config["others"]["dataLocation"],
+        config["others"]["langLocation"],
     ]:
         if not os.path.isdir(d):
             os.mkdir(d)

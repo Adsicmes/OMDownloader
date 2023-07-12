@@ -8,7 +8,13 @@
       "avatar": {
         "loginLabel": "Login",
         "loginButton": "login",
-        "cancelButton": "cancel"
+        "loginButtonLoading": "logining..."
+      },
+      "closeMsg": {
+        "closeMsgTitle": "Close",
+        "closeMsgContent": "Are you sure to exit?",
+        "yes": "Yes",
+        "no": "No"
       }
     },
     "mapDownloadPage": {
@@ -16,7 +22,7 @@
         "batchDownload": "BatchDownload"
       },
       "batchDownloadPage": {
-        "statusLabel": "*左边的参数全部都是可选项，也就是说可以不做选择*",
+        "statusLabel": "*左边的参数全部都是可选项*",
         "execButton": "Exec",
         "labels": {
           "q": "Search :",
