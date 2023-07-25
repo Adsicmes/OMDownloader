@@ -38,33 +38,33 @@ def initLanguageConfiguration():
     # https://learn.microsoft.com/zh-cn/previous-versions/system-center/system-center-2012-R2/dn281927%28v=sc.12%29
     lang_code = windll.kernel32.GetSystemDefaultUILanguage()  # return int, but can be directly compared with python hex
 
-    if config["view"]["i18nLanguage"] != "auto":
+    if config["View.i18nLanguage"] != "auto":
         return
 
     if lang_code == 0x804:
-        config.setViewI18nLanguage("zh_CN")
+        config.setValue(section="View", key="i18nLanguage", value="zh_CN", saveToFile=False)
     elif lang_code == 0x409:
-        config.setViewI18nLanguage("en_US")
+        config.setValue(section="View", key="i18nLanguage", value="en_US", saveToFile=False)
     else:
-        config.setViewI18nLanguage("en_US")
+        config.setValue(section="View", key="i18nLanguage", value="en_US", saveToFile=False)
     logger.info("Successfully detect system language.")
 
 
 @logger.catch
 def initThemeConfiguration():
-    if config["view"]["theme"] != "auto":
+    if config["View.theme"] != "auto":
         return
 
     if darkdetect.isDark():
-        config.setViewTheme("dark")
+        config.setValue(section="View", key="theme", value="dark", saveToFile=False)
     else:
-        config.setViewTheme("light")
+        config.setValue(section="View", key="theme", value="light", saveToFile=False)
     logger.info("Successfully detect if system in dark mode.")
 
 
 @logger.catch
 def initThemeColorConfiguration():
-    if config["view"]["themeColor"] != "auto":
+    if config["View.themeColor"] != "auto":
         return
 
     a = ctypes.c_ulong()
@@ -74,4 +74,4 @@ def initThemeColorConfiguration():
     windll.dwmapi.DwmGetColorizationColor(a_p, b_p)
     logger.info("Successfully detect system theme color.")
     hexStrValue = hex(a.value)[2:]
-    config.setViewThemeColor(hexStrValue)
+    config.setValue(section="View", key="themeColor", value=hexStrValue, saveToFile=False)

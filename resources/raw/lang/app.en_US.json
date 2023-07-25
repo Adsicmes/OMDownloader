@@ -2,13 +2,17 @@
   "en_US": {
     "mainWindow": {
       "appTitle": "FrZ is handsome",
-      "homeInterface": "HomeInterface",
-      "mapDownloadInterface": "MapDownloadInterface",
+      "homeInterface": "Home",
+      "mapDownloadInterface": "MapDownload",
+      "taskInterface": "Tasks",
       "guest": "Guest",
       "avatar": {
+        "loginRemember": "Remember me",
         "loginLabel": "Login",
         "loginButton": "login",
-        "loginButtonLoading": "logining..."
+        "loginButtonLoading": "loging in...",
+        "logoutButton": "Logout",
+        "logoutButtonLoading": "logging out..."
       },
       "closeMsg": {
         "closeMsgTitle": "Close",
@@ -22,8 +26,8 @@
         "batchDownload": "BatchDownload"
       },
       "batchDownloadPage": {
-        "statusLabel": "*左边的参数全部都是可选项*",
-        "execButton": "Exec",
+        "statusLabel": "*727*",
+        "execButton": "Add Task",
         "labels": {
           "q": "Search :",
           "c": "General",
@@ -46,7 +50,11 @@
           "created": "Created at",
           "sort": "Sorted by",
           "count": "Count",
-          "mirror": "Mirror"
+          "mirror": "Mirror",
+          "noVideo": "No Video?",
+          "exportOnly": "Export sid only?",
+          "specifiedPath": "Specify path",
+          "specifiedPathPlaceholder": "Download to osu songs if blank."
         },
         "c": {
           "recommended": "Recommended",
@@ -163,6 +171,16 @@
           "createdLabel": "Map Created datetime. If enable this, ranked time will be disabled."
         }
       }
+    },
+    "taskPage": {
+      "noTask": "No Task",
+      "msgLabel": "Ready to Start.",
+      "buttonStatStart": "Start",
+      "buttonStatProcessing": "processing",
+      "buttonStatDone": "Done"
+    },
+    "tasks": {
+      "batchMapDownload": "Scrape and download {{count}} maps."
     }
   }
 }

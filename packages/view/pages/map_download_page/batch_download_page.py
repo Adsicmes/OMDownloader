@@ -1,5 +1,4 @@
 # coding:utf-8
-# TODO: 文件有待重构
 import datetime
 from typing import List, Literal, Tuple
 
@@ -19,6 +18,7 @@ from packages.enums.search_params_in_official import *
 from packages.handlers.map_download.batch_download import batch_download_exec
 from packages.model.map_download_model.batch_download_model import DownloadParams, BeatmapParamsOfficial, \
     DownloadParamsFilter
+from packages.view.components.line_edit import FolderSelectLineEdit
 
 
 class NumRangeUnit(QWidget):
@@ -226,6 +226,7 @@ class ParamFillInWidget(QWidget):
         self.qLabel.installEventFilter(ToolTipFilter(self.qLabel, 300, ToolTipPosition.TOP))
         self.qLabel.setToolTip(i18n.t("app.mapDownloadPage.batchDownloadPage.tooltip.qLabel"))
         self.qLineEdit = LineEdit(self)
+        self.qLineEdit.setPlaceholderText("我草有没有界面设计大佬啊，妈的真不会界面设计")  # TODO: Delete it when done ):
 
         self.cEnabled = CheckBox("", self)
         self.cEnabled.stateChanged.connect(lambda: self.checkboxEnableFilter(self.cEnabled))
@@ -632,16 +633,34 @@ class BatchDownloadSubInterface(QWidget):
             [i18n.t(f"app.mapDownloadPage.batchDownloadPage.sort.{i.value}") for i in ParamsSort])
         self.sortComboBox.setCurrentIndex(7)  # ranked reverse
         self.sortComboBox.setFixedWidth(175)
+
         self.countLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.count"), self)
         self.countSpinBox = SpinBox(self)
-        self.countSpinBox.setMaximum(10000)
+        self.countSpinBox.setMaximum(99999)
         self.countSpinBox.setValue(200)
         self.countSpinBox.setFixedWidth(175)
+
         self.mirrorLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.mirror"), self)
         self.mirrorComboBox = ComboBox(self)
         self.mirrorComboBox.addItems([i.value for i in Mirrors])
         self.mirrorComboBox.setCurrentIndex(0)
         self.mirrorComboBox.setFixedWidth(175)
+
+        self.noVideoLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.noVideo"), self)
+        self.noVideoCheckBox = CheckBox(self)
+        self.noVideoCheckBox.setChecked(False)
+        self.noVideoCheckBox.setFixedWidth(175)
+
+        self.isExportOnlyLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.exportOnly"), self)
+        self.isExportOnlyCheckBox = CheckBox(self)
+        self.isExportOnlyCheckBox.setChecked(False)
+        self.isExportOnlyCheckBox.setFixedWidth(175)
+
+        self.specifiedPathLabel = QLabel(i18n.t("app.mapDownloadPage.batchDownloadPage.labels.specifiedPath"), self)
+        self.specifiedPathLineEdit = FolderSelectLineEdit(self)
+        self.specifiedPathLineEdit.setFixedWidth(175)
+        self.specifiedPathLineEdit.setPlaceholderText(
+            i18n.t("app.mapDownloadPage.batchDownloadPage.labels.specifiedPathPlaceholder"))
 
         self.execButton = PrimaryPushButton(self)
         self.execButton.clicked.connect(self._onExecButtonClicked)
@@ -663,6 +682,9 @@ class BatchDownloadSubInterface(QWidget):
         self.sortHBoxLayout = QHBoxLayout()
         self.countHBoxLayout = QHBoxLayout()
         self.mirrorHBoxLayout = QHBoxLayout()
+        self.noVideoHBoxLayout = QHBoxLayout()
+        self.isExportOnlyHBoxLayout = QHBoxLayout()
+        self.specifiedPathHBoxLayout = QHBoxLayout()
 
         self.sortHBoxLayout.addWidget(self.sortLabel)
         self.sortHBoxLayout.addWidget(self.sortComboBox)
@@ -670,6 +692,12 @@ class BatchDownloadSubInterface(QWidget):
         self.countHBoxLayout.addWidget(self.countSpinBox)
         self.mirrorHBoxLayout.addWidget(self.mirrorLabel)
         self.mirrorHBoxLayout.addWidget(self.mirrorComboBox)
+        self.noVideoHBoxLayout.addWidget(self.noVideoLabel)
+        self.noVideoHBoxLayout.addWidget(self.noVideoCheckBox)
+        self.isExportOnlyHBoxLayout.addWidget(self.isExportOnlyLabel)
+        self.isExportOnlyHBoxLayout.addWidget(self.isExportOnlyCheckBox)
+        self.specifiedPathHBoxLayout.addWidget(self.specifiedPathLabel)
+        self.specifiedPathHBoxLayout.addWidget(self.specifiedPathLineEdit)
 
         self.leftVBoxLayout = QVBoxLayout()
         self.rightVBoxLayout = QVBoxLayout()
@@ -679,14 +707,17 @@ class BatchDownloadSubInterface(QWidget):
         self.statusLabel.setFixedWidth(300)
 
         self.leftVBoxLayout.addWidget(self.scrollArea)
-        self.rightVBoxLayout.addWidget(self.statusLabel, Qt.AlignmentFlag.AlignTop)
+        self.rightVBoxLayout.addWidget(self.statusLabel)
         self.rightVBoxLayout.addLayout(self.sortHBoxLayout)
         self.rightVBoxLayout.addLayout(self.countHBoxLayout)
         self.rightVBoxLayout.addLayout(self.mirrorHBoxLayout)
-        self.rightVBoxLayout.addWidget(self.execButton, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom)
+        self.rightVBoxLayout.addLayout(self.noVideoHBoxLayout)
+        self.rightVBoxLayout.addLayout(self.isExportOnlyHBoxLayout)
+        self.rightVBoxLayout.addLayout(self.specifiedPathHBoxLayout)
+        self.rightVBoxLayout.addWidget(self.execButton)
 
         # self.hBoxLayout.addWidget(self.paramWidget)
-        self.hBoxLayout.addLayout(self.leftVBoxLayout)
+        self.hBoxLayout.addLayout(self.leftVBoxLayout, stretch=1)
         self.hBoxLayout.addLayout(self.rightVBoxLayout)
 
     def getParams(self) -> DownloadParams:
@@ -932,7 +963,8 @@ class BatchDownloadSubInterface(QWidget):
                 played=played,
                 l=l,
                 g=g,
-                sort=sort
+                sort=sort,
+                cursor_string=None
             ),
             filter=DownloadParamsFilter(
                 ar=self.paramWidget.arRangeWidget.getRange() if self.paramWidget.arEnabled.isChecked() else None,
@@ -946,7 +978,10 @@ class BatchDownloadSubInterface(QWidget):
                 created=self.paramWidget.createdRangeWidget.getRange() if self.paramWidget.createdEnabled.isChecked() else None,
             ),
             count=self.countSpinBox.value(),
-            mirror=mirror
+            mirror=mirror,
+            isExportOnly=self.isExportOnlyCheckBox.isChecked(),
+            specifiedPath=self.specifiedPathLineEdit.text(),
+            noVideo=self.noVideoCheckBox.isChecked()
         )
         return params
 

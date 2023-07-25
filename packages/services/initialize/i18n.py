@@ -92,7 +92,7 @@ def initI18n():
     load_external_translation_file()
     logger.info("Successfully load external translation files.")
 
-    i18n.set("locale", config["view"]["i18nLanguage"])
+    i18n.set("locale", config["View.i18nLanguage"])
     i18n.set("fallback", "en_US")
     i18n.set("file_format", "json")
     i18n.set("enable_memoization", True)

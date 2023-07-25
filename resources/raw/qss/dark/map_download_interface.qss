@@ -11,3 +11,7 @@
 .ParamFillInWidget {
     background: transparent;
 }
+
+.TaskCard {
+    background: transparent;
+}

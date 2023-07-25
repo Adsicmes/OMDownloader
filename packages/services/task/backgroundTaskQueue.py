@@ -4,13 +4,13 @@ from threading import Thread
 from typing import Callable, List, Tuple
 
 
-class TaskQueue:
+class BackgroundTaskQueue:
     def __init__(self):
         self.taskList: List[Thread] = []
         self.queueList: List[Tuple[uuid.UUID, Queue]] = []
 
-    def createTaskWithNewThread(self, func: Callable, timeout=0, *args, **kwargs) -> Thread:
-        t = Thread(target=func, args=args, kwargs=kwargs)
+    def createTaskWithNewThread(self, func: Callable, timeout=None, *args, **kwargs) -> Thread:
+        t = Thread(target=func, args=args, kwargs=kwargs, daemon=True)
         self.taskList.append(t)
         t.start()
         t.join(timeout)

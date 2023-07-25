@@ -10,6 +10,7 @@ class StyleSheet(StyleSheetBase, Enum):
 
     HOME_INTERFACE = "home_interface"
     MAP_DOWNLOAD_INTERFACE = "map_download_interface"
+    TASK_INTERFACE = "task_interface"
 
     PARAMETER_FILL_IN_WIDGET = "parameter_fill_in_widget"
 

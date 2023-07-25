@@ -11,6 +11,7 @@ def initPreUILoaded():
     initResources()
 
     initDir()
+    initOsuDir()
 
     initLanguageConfiguration()
     initThemeConfiguration()

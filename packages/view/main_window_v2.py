@@ -10,7 +10,7 @@ from qfluentwidgets.components.navigation.navigation_interface import Navigation
 from qframelesswindow import TitleBar
 
 from packages.config import config
-from packages.services.exit_service import exitEventHandle
+from packages.services.exit import exitEventHandle
 from .components import (AvatarWidget,
                          SplashScreenWithFadeOut as SplashScreen,
                          FluentTitleBarWithVersionNumber as TitleBar)
@@ -26,6 +26,7 @@ class MainWindow(FluentWindow):
         # create sub interface
         self.homeInterface = HomeInterface(self)
         self.mapDownloadInterface = MapDownloadInterface(self)
+        self.taskInterface = TaskInterface(self)
         self.avatar = AvatarWidget(self)
 
         self.initNavigation()
@@ -43,6 +44,10 @@ class MainWindow(FluentWindow):
                              pos)
 
         # add custom widget to bottom
+        self.addSubInterface(self.taskInterface,
+                             FIF.LAYOUT,
+                             i18n.t("app.mainWindow.taskInterface"),
+                             NavigationItemPosition.BOTTOM)
         self.navigationInterface.addWidget(
             routeKey='avatar',
             widget=self.avatar,
@@ -52,7 +57,7 @@ class MainWindow(FluentWindow):
 
     @staticmethod
     def setApplicationTheme():
-        cfg_theme = config["view"]["theme"]
+        cfg_theme = config["View.theme"]
         if cfg_theme == "dark":
             setTheme(Theme.DARK)
         elif cfg_theme == "light":
@@ -62,9 +67,9 @@ class MainWindow(FluentWindow):
 
     def initWindow(self):
         self.setTitleBar(TitleBar(self))
-        self.resize(1300, int(1300 * 9 / 16))
-        self.setMinimumWidth(1300)
-        self.setMinimumHeight(int(1300 * 9 / 16))
+        self.resize(1280, 720)
+        self.setMinimumWidth(1280)
+        self.setMinimumHeight(720)
         self.setWindowIcon(QIcon(':res/raw/osu_icon.png'))
         self.setWindowTitle(i18n.t("app.mainWindow.appTitle"))
 

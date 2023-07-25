@@ -1,4 +1,4 @@
-from typing import TypedDict, List
+from typing import TypedDict, List, Optional
 
 from packages.enums.search_params_in_official import *
 
@@ -15,3 +15,4 @@ class BeatmapParamsOfficial(TypedDict):
     l: ParamsL
     g: ParamsG
     sort: ParamsSort
+    cursor_string: Optional[str]

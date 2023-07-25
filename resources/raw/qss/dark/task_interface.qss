@@ -1,0 +1,43 @@
+.ScrollArea {
+    background: transparent;
+    border-color: transparent;
+}
+
+.NoTaskArea {
+    background: transparent;
+}
+
+.NoTaskArea > .QLabel {
+    font-size: 36px;
+    color: white;
+}
+
+.TaskArea {
+    background: transparent;
+}
+
+.TaskCard {
+    background-color: rgb(32, 32, 32);
+    color: white;
+}
+
+.TaskCard > #Name {
+    font-size: 24px;
+    color: white;
+}
+
+.TaskCard > #UUID {
+    font-size: 12px;
+    color: gray;
+}
+
+.TaskCard > #Msg {
+    font-size: 16px;
+    color: gray;
+}
+
+.TaskCard > #ProgressNum {
+    color: white;
+    font-size: 14px;
+}
+

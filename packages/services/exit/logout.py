@@ -10,4 +10,4 @@ def exitLogout():
         osuWebApi.logout()
         loggedUser.isLogged = False
         return
-    logger.info("Already logged out osu account.")
+    logger.info("Osu account is not login, dont need to logout.")

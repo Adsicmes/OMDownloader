@@ -1,4 +1,4 @@
-from typing import TypedDict, Tuple
+from typing import TypedDict, Tuple, Union
 
 from packages.enums.map_download import Mirrors
 from packages.model.osu_web.beatmap import BeatmapParamsOfficial
@@ -21,3 +21,6 @@ class DownloadParams(TypedDict):
     filter: DownloadParamsFilter
     count: int
     mirror: Mirrors
+    isExportOnly: bool
+    specifiedPath: Union[str, None]
+    noVideo: bool

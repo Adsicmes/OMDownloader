@@ -4,7 +4,6 @@ from qfluentwidgets import SplashScreen
 class SplashScreenWithFadeOut(SplashScreen):
 
     def finish(self):
-        # TODO: 开屏页渐出动画
 
         # self.opacityAni = QPropertyAnimation(self, b"windowOpacity")
         # self.opacityAni.setDuration(187)

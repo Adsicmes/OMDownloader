@@ -7,3 +7,11 @@ class PlayMode(Enum):
     Fruits = 2
     Catch = 2
     Mania = 3
+
+
+class PlayModeString(Enum):
+    OSU = "osu"
+    Taiko = "taiko"
+    Fruits = "fruits"
+    Catch = "fruits"
+    Mania = "mania"

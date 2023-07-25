@@ -11,4 +11,4 @@ def initLogin():
     if os.path.isfile(DataFilePath.userLoginInfo):
         logger.info("Detected local user login info, loading and logining...")
         username, account = pickle.load(open(DataFilePath.userLoginInfo, "rb"))
-        login_exec(username, account)
+        login_exec(username, account, isRemember=False)
