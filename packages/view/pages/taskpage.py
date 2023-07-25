@@ -5,7 +5,8 @@ from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QFrame, QVBoxLayout
 from qfluentwidgets import (ScrollArea, ProgressBar, PopUpAniStackedWidget, isDarkTheme,
                             PrimaryPushButton, FluentIcon)
 
-from packages.common.task_queue import Task, taskList
+from packages.common.task_queue import taskList
+from packages.services.task.taskList import Task
 from packages.view.common.stylesheet_manager import StyleSheet
 
 
