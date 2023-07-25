@@ -175,7 +175,7 @@ class ConfigFile(QObject):
         self.config.read(self.configFile)
 
     def createConfig(self) -> None:
-        os.makedirs(os.path.dirname(self.configFile), exist_ok=True)
+        # os.makedirs(os.path.dirname(self.configFile), exist_ok=True)
         self.config.read_dict(self.defaultConfig)
         with open(self.configFile, 'w') as configFile:
             self.config.write(configFile)
