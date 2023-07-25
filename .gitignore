@@ -4,6 +4,6 @@
 /data
 /test
 /release
-/packages/resources.py
+/resources/resources.py
 test.py
 /devTools/exePack/installerPack/innoScript.iss
