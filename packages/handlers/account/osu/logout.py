@@ -1,6 +1,7 @@
 import os
 
 import i18n
+from loguru import logger
 
 from packages.common import DataFilePath
 from packages.common import backgroundTaskQueue
@@ -10,6 +11,7 @@ from packages.common import signalBus
 
 
 def logout_exec():
+    logger.info("Osu account is loging out...")
     quid = backgroundTaskQueue.createQueue()
     logoutThread = backgroundTaskQueue.createTaskWithNewThread(_logout)
 
@@ -23,4 +25,7 @@ def _logout():
         loggedUser.isLogged = False
 
         if os.path.isfile(DataFilePath.userLoginInfo):
+            logger.success("Remove user password file...")
             os.remove(DataFilePath.userLoginInfo)
+
+        logger.success("Logout done.")

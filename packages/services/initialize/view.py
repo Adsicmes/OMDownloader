@@ -28,7 +28,7 @@ def initAppFont():
     ]:
         QFontDatabase.addApplicationFont(f":/res/raw/fonts/{font}.ttf")
         logger.info(f"Initialized app font: {font}")
-    logger.info("Initialized app font.")
+    logger.success("Initialized app font.")
 
 
 @logger.catch
@@ -47,7 +47,7 @@ def initLanguageConfiguration():
         config.setValue(section="View", key="i18nLanguage", value="en_US", saveToFile=False)
     else:
         config.setValue(section="View", key="i18nLanguage", value="en_US", saveToFile=False)
-    logger.info("Successfully detect system language.")
+    logger.success("Successfully detect system language.")
 
 
 @logger.catch
@@ -59,7 +59,7 @@ def initThemeConfiguration():
         config.setValue(section="View", key="theme", value="dark", saveToFile=False)
     else:
         config.setValue(section="View", key="theme", value="light", saveToFile=False)
-    logger.info("Successfully detect if system in dark mode.")
+    logger.success("Successfully detect if system in dark mode.")
 
 
 @logger.catch
@@ -72,6 +72,6 @@ def initThemeColorConfiguration():
     a_p = ctypes.byref(a)
     b_p = ctypes.byref(b)
     windll.dwmapi.DwmGetColorizationColor(a_p, b_p)
-    logger.info("Successfully detect system theme color.")
+    logger.success("Successfully detect system theme color.")
     hexStrValue = hex(a.value)[2:]
     config.setValue(section="View", key="themeColor", value=hexStrValue, saveToFile=False)

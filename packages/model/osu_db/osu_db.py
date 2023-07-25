@@ -1,0 +1,61 @@
+from typing import TypedDict
+
+
+class OsuDbBeatmap(TypedDict):
+    artist: str
+    artist_unicode: str
+    song_title: str
+    song_title_unicode: str
+    mapper: str
+    difficulty: str
+    audio_file: str
+    md5_hash: str
+    map_file: str
+    ranked_status: int
+    num_hitcircles: int
+    num_sliders: int
+    num_spinners: int
+    last_modified: int
+    approach_rate: float
+    circle_size: float
+    hp_drain: float
+    overall_difficulty: float
+    slider_velocity: float
+    drain_time: int
+    total_time: int
+    preview_time: int
+    beatmap_id: int
+    beatmapset_id: int
+    thread_id: int
+    grade_standard: int
+    grade_taiko: int
+    grade_ctb: int
+    grade_mania: int
+    local_offset: int
+    stack_leniency: int
+    gameplay_mode: int
+    song_source: int
+    song_tags: str
+    online_offset: int
+    title_font: int
+    is_unplayed: bool
+    last_played: int
+    is_osz2: bool
+    folder_name: str
+    last_checked: int
+    ignore_sounds: bool
+    ignore_skin: bool
+    disable_storyboard: bool
+    disable_video: bool
+    visual_override: bool
+    last_modified2: int
+    scroll_speed: int
+
+
+class OsuDbModel(TypedDict):
+    version: int
+    folder_count: int
+    account_unlocked: bool
+    name: str
+    num_beatmaps: int
+    beatmaps: list[OsuDbBeatmap]

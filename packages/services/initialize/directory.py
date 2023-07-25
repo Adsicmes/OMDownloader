@@ -16,7 +16,7 @@ def initDir():
     ]:
         if not os.path.isdir(d):
             os.mkdir(d)
-            logger.info(f"Successfully create directory: {d}")
+            logger.success(f"Successfully create directory: {d}")
 
 
 def initOsuDir():
@@ -28,3 +28,4 @@ def initOsuDir():
     osu[0] += r"\\"
 
     config.setValue("Others", "osuPath", os.path.join(*osu), saveToFile=False)
+    logger.success(f"Successfully read osu directory: {os.path.join(*osu)}")

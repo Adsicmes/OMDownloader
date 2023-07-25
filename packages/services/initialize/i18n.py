@@ -87,16 +87,16 @@ def initI18n():
 
     load_translation_file("app.en_US.json", ":/res/raw/lang/app.en_US.json", "en_US")
     load_translation_file("app.zh_CN.json", ":/res/raw/lang/app.zh_CN.json", "zh_CN")
-    logger.info("Successfully load built-in translation files. (en_US, zh_CN)")
+    logger.success("Successfully load built-in translation files. (en_US, zh_CN)")
 
     load_external_translation_file()
-    logger.info("Successfully load external translation files.")
+    logger.success("Successfully load external translation files.")
 
     i18n.set("locale", config["View.i18nLanguage"])
     i18n.set("fallback", "en_US")
     i18n.set("file_format", "json")
     i18n.set("enable_memoization", True)
     i18n.set("on_missing_translation", on_missing_translation)
-    logger.info("Successfully set i18n configs.")
+    logger.success("Successfully set i18n configs.")
 
-    logger.info("Successfully initialized i18n.")
+    logger.success("Successfully initialized i18n.")

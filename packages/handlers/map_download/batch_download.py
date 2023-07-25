@@ -10,16 +10,19 @@ from typing import Tuple
 
 import httpx
 import i18n
+from loguru import logger
 
 from packages.common import backgroundTaskQueue, osuWebApi, retry, taskList
 from packages.common.filepath import CacheFilePath, OSUPath
 from packages.common.task_queue import beatmapDownloadQueue
 from packages.config import config
 from packages.model.map_download_model.batch_download_model import DownloadParams
+from packages.utils.osu_db.osu_db import OsuDb
 from packages.utils.path import isValidLocalPath, convertToValidFilename
 
 
 def batch_download_exec(params: DownloadParams):
+    logger.info("Add batch map download task.")
     handleThread = taskList.add(
         _handle,
         i18n.t("app.tasks.batchMapDownload").replace("{{count}}", str(params["count"])),
@@ -28,7 +31,7 @@ def batch_download_exec(params: DownloadParams):
 
 
 def _handle(params: DownloadParams, taskQ: queue.Queue):
-    taskQ.put((0, "Starting to scrape beatmaps..."))
+    taskQ.put((0, "Starting to read osu db and scrape beatmaps..."))
 
     totalProgress = 100 if params["isExportOnly"] else 20
 
@@ -45,13 +48,16 @@ def _handle(params: DownloadParams, taskQ: queue.Queue):
     q.task_done()
 
     if params["isExportOnly"]:
+        logger.info("Beatmap export only...")
         if not os.path.isdir(params["specifiedPath"]):
             os.makedirs(params["specifiedPath"])
 
         with open(params["specifiedPath"], "w") as f:
             json.dump(result, f)
+            logger.success("Exported. Batch download finished.")
         return
 
+    logger.info(f"Got {len(result)} beatmapsets. Starting download...")
     taskQ.put((totalProgress, "Downloading beatmaps..."))
     time.sleep(1)
 
@@ -121,12 +127,20 @@ def _result(quidSearch: uuid.UUID, quidHandle: uuid.UUID, quidResult: uuid.UUID,
     qResult = backgroundTaskQueue.findQueue(quidResult)
     results = []
 
+    taskQ.put((0, "Reading osu db..."))
+    osuDb = OsuDb(OSUPath.osuDbPath)
+    beatmapExists = osuDb.getAllBeatmapsetIds()
+
+    taskQ.put((5, "Scraping beatmaps..."))
     qSearch.put(True)
     while True:
         result: dict = qResult.get()
 
         isBreak = False
         for bm in result["beatmapsets"]:
+            if bm["id"] in beatmapExists:
+                continue
+
             results.append(bm)
 
             taskQ.put((int(totalProgress * (len(results) / params["count"])),
@@ -175,11 +189,13 @@ def _download(params: DownloadParams, result: list, taskQ: queue.Queue):
     while info := downloadOutputQueue.get():
         info: Tuple[int, int, Tuple[Tuple[int, PathLike, bool], PathLike]]
         total, done, args = info
-        print(args)
+        logger.info(f"{args[0][0]} downloaded. {done} of {total} Total.")
         taskQ.put((done / total * 80 + 20, f"Beatmapset {args[0][0]} downloaded. {done} of {total} Total."))
         if total == done:
             taskQ.put((done / total * 80 + 20, f"Downloaded {done} of {total} beatmaps."))
             break
+
+    logger.success("Batch download finished.")
 
 
 @retry(delays=(1 for _ in range(int(config["Retry.ppy_sh"]))), exceptions=(httpx.HTTPError,))

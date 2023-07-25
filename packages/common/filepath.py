@@ -43,5 +43,9 @@ class _OSUPath:
         else:
             return content[1]
 
+    @property
+    def osuDbPath(self):
+        return os.path.join(self.basePath, 'osu!.db')
+
 
 OSUPath = _OSUPath()

@@ -1,6 +1,7 @@
 import pickle
 
 import httpx
+from loguru import logger
 
 from packages.common import DataFilePath
 from packages.common import backgroundTaskQueue
@@ -15,6 +16,7 @@ from packages.utils import getNowUnixTimestamp
 
 
 def login_exec(username, password, isRemember):
+    logger.info("Osu account is loging in...")
     quid = backgroundTaskQueue.createQueue()
     loginThread = backgroundTaskQueue.createTaskWithNewThread(_login, 0, username, password, quid, isRemember)
 
@@ -46,6 +48,7 @@ def _loginHandle(username, password, quid, isRemember):
 
     # change avatar and username in interface
     signalBus.usernameUpdate.emit(info["username"])
+    logger.info("Getting user osu avatar...")
     avatarDownload(info["avatar_url"])
 
     if isRemember:
@@ -54,3 +57,4 @@ def _loginHandle(username, password, quid, isRemember):
 
     # done queue task
     q.task_done()
+    logger.success("Login done.")
